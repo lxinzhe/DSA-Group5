@@ -13,7 +13,14 @@ struct Vendor {
     int boothNumber;
 };
 
+struct Feedback {
+    string vendorName;
+    string message;
+    int boothNumber;
+};
+
 vector<Vendor> vendors;
+vector<Feedback> feedbacks;
 int nextBoothNumber = 1; 
 
 void findVendor();
@@ -22,13 +29,20 @@ void addNewVendor();
 void saveVendorsToFile();
 void loadVendorsFromFile();
 
+void writeFeedback();
+void findFeedback();
+void saveFeedbackToFile();
+void loadFeedbackFromFile();
+void interpolationSearchFeedback(int boothNumber);
+
 int main() {
     loadVendorsFromFile();
+    loadFeedbackFromFile();
     int choice;
     while (true) {
         displayMainMenu();
         cin >> choice;
-        cin.ignore(); // Clear newline character from the buffer
+        cin.ignore();
 
         switch (choice) {
             case 1:
@@ -38,13 +52,15 @@ int main() {
                 addNewVendor();
                 break;
             case 3:
-                //writeFeedback();
+                writeFeedback();
                 break;
             case 4:
+                findFeedback();
                 break;
             case 5:
                 cout << "Exiting the system. Goodbye!" << endl;
                 saveVendorsToFile();
+                saveFeedbackToFile();
                 return 0;
             default:
                 cout << "Invalid choice. Please try again." << endl;
@@ -127,14 +143,14 @@ void findVendor() {
     cout << "Enter 1 to Search Vendor Booth Number\n";
     cout << "Enter 2 to Sort Vendor\n";
     cin >> cho;
-    cin.ignore(); // Clear newline character from the buffer
+    cin.ignore(); 
 
     switch (cho) {
         case 1: {
             int searchBoothNumber;
             cout << "Enter the booth number of the vendor to search: ";
             cin >> searchBoothNumber;
-            cin.ignore(); // Clear newline character from the buffer
+            cin.ignore(); 
             interpolationSearch(searchBoothNumber);
             break;
         }
@@ -151,7 +167,120 @@ void findVendor() {
     cin.ignore();
 }
 
+void writeFeedback() {
+    Feedback newFeedback;
+    cout << "Enter Vendor Name: ";
+    getline(cin, newFeedback.vendorName);
+    cout << "Enter Feedback: ";
+    getline(cin, newFeedback.message);
 
+	newFeedback.boothNumber = nextBoothNumber++;
+    feedbacks.push_back(newFeedback);
+    cout << "Feedback has been successfully added with Booth Number " << newFeedback.boothNumber << "!\n";
+    saveFeedbackToFile();
+    cout << "Press Enter to return to the main menu.";
+    cin.ignore();
+    
+}
+
+//interpolation Search  for feedback
+void interpolationSearchFeedback(int boothNumber) {
+    int low = 0, high = feedbacks.size() - 1;
+    
+    while (low <= high && boothNumber >= feedbacks[low].boothNumber && boothNumber <= feedbacks[high].boothNumber) {
+        if (low == high) {
+            if (feedbacks[low].boothNumber == boothNumber) {
+                cout << "Feedback found:\n";
+                cout << "Vendor Name: " << feedbacks[low].vendorName << endl;
+                cout << "Feedback: " << feedbacks[low].message << endl;
+                return;
+            } else {
+                cout << "Feedback not found." << endl;
+                return;
+            }
+        }
+        
+        int pos = low + (((double)(high - low) / (feedbacks[high].boothNumber - feedbacks[low].boothNumber)) * (boothNumber - feedbacks[low].boothNumber));
+        
+        if (feedbacks[pos].boothNumber == boothNumber) {
+            cout << "Feedback found:\n";
+            cout << "Vendor Name: " << feedbacks[pos].vendorName << endl;
+            cout << "Feedback: " << feedbacks[pos].message << endl;
+            return;
+        }
+        
+        if (feedbacks[pos].boothNumber < boothNumber) {
+            low = pos + 1;
+        } else {
+            high = pos - 1;
+        }
+    }
+    
+    cout << "Feedback not found." << endl;
+}
+
+void findFeedback() {
+    system("cls");
+    int cho;
+    cout << "Enter 1 to Search Feedback by Booth Number\n";
+    cout << "Enter 2 to Sort Feedback\n";
+    cin >> cho;
+    cin.ignore(); 
+
+    switch (cho) {
+        case 1: {
+            int searchBoothNumber;
+            cout << "Enter the booth number of the vendor to search for feedback: ";
+            cin >> searchBoothNumber;
+            cin.ignore(); 
+            interpolationSearchFeedback(searchBoothNumber);
+            break;
+        }
+        case 2: {
+            // Call the function to sort feedbacks
+            break;
+        }
+        default:
+            cout << "Invalid choice.\n";
+            break;
+    }
+
+    cout << "Press Enter to return to the main menu.";
+    cin.ignore();
+}
+
+// save feedback into file
+void saveFeedbackToFile() {
+    ofstream outFile("feedback.txt");
+    if (outFile.is_open()) {
+        for (int i = 0; i < feedbacks.size(); ++i){
+            outFile << feedbacks[i].vendorName << '\n'
+                    << feedbacks[i].message << '\n'
+                    << feedbacks[i].boothNumber << '\n';
+        }
+        outFile.close();
+    } else {
+        cout << "Unable to save feedback data.\n";
+    }
+}
+
+//read feedback from file
+void loadFeedbackFromFile() {
+    ifstream inFile("feedback.txt");
+    if (inFile.is_open()) {
+        feedbacks.clear();
+        Feedback feedback;
+        while (getline(inFile, feedback.vendorName) &&
+               getline(inFile, feedback.message)) {
+            inFile >> feedback.boothNumber;
+            inFile.ignore(); // Consume newline character
+            feedbacks.push_back(feedback);
+        }
+        inFile.close();
+    } else {
+        cout << "No feedback data file found. Starting with an empty list.\n";
+    }
+}
 
 // save vendor into file
 void saveVendorsToFile() {
