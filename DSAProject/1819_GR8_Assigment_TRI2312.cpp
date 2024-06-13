@@ -16,6 +16,26 @@ struct Booking {
     string details;
 };
 
+struct UserData {
+        string username;
+        string password;
+        string email;
+        UserData* next;
+
+        UserData(const string& uname, const string& pwd, const string& mail)
+            : username(uname), password(pwd), email(mail), next(nullptr) {}
+};
+    
+struct FeedbackNode {
+    string username;
+    string feedback;
+    int rating;
+    FeedbackNode* next;
+
+    FeedbackNode(const string& user, const string& fb, int rate)
+        : username(user), feedback(fb), rating(rate), next(nullptr) {}
+};
+
 HANDLE h=GetStdHandle(STD_OUTPUT_HANDLE);
 
 void display_menu();
@@ -25,18 +45,12 @@ void adminpage();
 void detaildisplay(const string& userIdfile);
 string GetHiddenPassword();
 void viewFeedback();
+    void exitAdminPage();
+
 
 class USER{
 private:
-    struct UserData {
-        string username;
-        string password;
-        string email;
-        UserData* next;
 
-        UserData(const string& uname, const string& pwd, const string& mail)
-            : username(uname), password(pwd), email(mail), next(nullptr) {}
-    };
 
     UserData* head;
 
@@ -852,53 +866,6 @@ void viewUserDeletionLog() {
         cout << "Unable to open user deletion log file." << endl;
     }
 }
-
-  void updateUser() {
-    string usernameToUpdate;
-    cout << "Enter username of the user to update: ";
-    cin >> usernameToUpdate;
-
-    ifstream inFile("user_data.txt");
-    ofstream outFile("temp_user_data.txt");
-
-    if (!inFile.is_open() || !outFile.is_open()) {
-        cout << "Error opening files." << endl;
-        return;
-    }
-
-    bool userFound = false;
-    User user;
-    string line;
-
-    while (getline(inFile, line)) {
-        istringstream iss(line);
-        if (iss >> user.username >> user.password >> user.email) {
-            if (user.username == usernameToUpdate) {
-                userFound = true;
-                cout << "Enter new password for " << user.username << ": ";
-                cin >> user.password;
-                cout << "Enter new email for " << user.username << ": ";
-                cin >> user.email;
-                outFile << user.username << " " << user.password << " " << user.email << endl;
-            } else {
-                outFile << user.username << " " << user.password << " " << user.email << endl;
-            }
-        }
-    }
-
-    inFile.close();
-    outFile.close();
-
-    if (userFound) {
-        remove("user_data.txt");
-        rename("temp_user_data.txt", "user_data.txt");
-        cout << "User information updated successfully." << endl;
-    } else {
-        cout << "No user found with the username " << usernameToUpdate << "." << endl;
-        remove("temp_user_data.txt");
-    }
-  }
-    
     
     void profit();
     
@@ -932,7 +899,11 @@ void viewUserDeletionLog() {
      }
    }
    
-    void exitAdminPage() {
+   
+   friend class booking;
+};
+
+void exitAdminPage() {
         system("cls");
         char exitChoice;
         cout<<"-----------------------------" << endl;
@@ -957,9 +928,6 @@ void viewUserDeletionLog() {
             adminpage();
         }
     }
-   
-   friend class booking;
-};
 
 void adminpage() {
     adminpanel ap;
@@ -974,9 +942,8 @@ void adminpage() {
     cout << "\t\t\t\t\t|  Press 3 to View Total Profit/Vendor |" << endl;
     cout << "\t\t\t\t\t|  Press 4 to View Categories          |" << endl;
     cout << "\t\t\t\t\t|  Press 5 to Update Admin Information |" << endl;
-    cout << "\t\t\t\t\t|  Press 6 to Update User Information  |" << endl;
-    cout << "\t\t\t\t\t|  Press 7 to View User Feedback       |" << endl; 
-    cout << "\t\t\t\t\t|  Press 8 to Exit                     |" << endl; 
+    cout << "\t\t\t\t\t|  Press 6 to View User Feedback       |" << endl; 
+    cout << "\t\t\t\t\t|  Press 7 to Exit                     |" << endl; 
     cout << "\t\t\t\t\tEnter Your Option :";
     cin >> adoption;
 
@@ -1008,19 +975,13 @@ void adminpage() {
             adminpage();
             break;
         case 6:
-            ap.updateUser();
-            system("Pause");
-            system("cls");
-            adminpage();
-            break;
-        case 7:
             viewFeedback();
             system("cls");
             adminpage();
             break;
-        case 8:
+        case 7:
             system("cls");
-            ap.exitAdminPage();
+            exitAdminPage();
             break;
         default:
             cout << "\t\t\t\t\tInvalid option. Please Try Again(1-8)" << endl;
@@ -1029,7 +990,6 @@ void adminpage() {
             adminpage();
     }
 }
-
 
 void adminpanel::profit() {
     ifstream file("booking_details.txt");
@@ -1075,240 +1035,238 @@ void adminpanel::profit() {
         }
 }
 
-class booking 
-{
-private:
-	USER L;
-    float price, total;
-    char booth, code,*eventgrp;
+struct Node {
+    string name;
+    string contact;
+    string service_type;
+    string userID;
+    char eventgrp;
+    char booth;
+    float total;
     int duration;
-    string *name, *contact, *service_type, *userID;
-    
-    
+    Node* next;
+
+    // Constructor
+    Node() : next(nullptr) {}
+};
+
+class booking {
+private:
+    Node* head;
+    Node* tail;
 
 public:
-    booking()
-	 {
-        name = new string;
-        contact = new string;
-        service_type = new string;
-       
-        userID = new string;
-        eventgrp = new char;
+    // Constructor
+    booking() : head(nullptr), tail(nullptr) {}
+
+    // Destructor
+    ~booking() {
+        Node* current = head;
+        while (current != nullptr) {
+            Node* next = current->next;
+            delete current;
+            current = next;
+        }
     }
 
-    ~booking() 
-	{
-        delete name;
-        delete contact;
-        delete service_type;
-       
-        delete userID;
-        delete eventgrp;
-    }
-
-    void setName() 
-	{
-        system("cls");
+    void setName() {
+        string nameInput;
         cout << "\tPlease Enter your detail for booking" << endl;
         cout << "----------------------------------------------------" << endl;
-        cout << "Vendor Company Name :";
-        getline(cin, *name);
+        cout << "Vendor Company Name: ";
+        getline(cin, nameInput);
+
+        Node* newNode = new Node;
+        newNode->name = nameInput;
+
+        if (head == nullptr) {
+            head = newNode;
+            tail = newNode;
+        } else {
+            tail->next = newNode;
+            tail = newNode;
+        }
     }
 
-    void setContact() 
-	{
-        cout << "Contact No :";
-        getline(cin, *contact);
+    void setContact() {
+        string contactInput;
+        cout << "Contact No: ";
+        getline(cin, contactInput);
+        tail->contact = contactInput;
     }
 
-    
-
-    int setDuration() 
-	{
-        cout << "Duration(Days):";
-        cin >> duration;
-        return duration;
+    int setDuration() {
+        int durationInput;
+        cout << "Duration (Days): ";
+        cin >> durationInput;
+        cin.ignore(); // Consume newline character
+        tail->duration = durationInput;
+        return durationInput;
     }
 
-    void setUserID(const string& userIdfile) 
-	{
-        *userID = userIdfile;
+    void setUserID(const string& userIdfile) {
+        tail->userID = userIdfile;
     }
-    
-    
-    void setEventGroup() 
-	{
-    cout << "Event [A]Food Feasta Carnival Kuala Lumpur  "<<
-    endl<<"From 3 March 2024 - 13 March 2024"<<endl;
+void setEventGroup() {
+    if (tail == nullptr) {
+        cout << "Error: No booking to set event group for." << endl;
+        return;
+    }
+    char eventInput;
+    cout << "Event [A]Food Feasta Carnival Kuala Lumpur" <<
+        endl << "From 3 March 2024 - 13 March 2024" << endl;
     cout << "----------------------------------------------" << endl;
-    cout << "Event [B]Food Feasta Carnival Johor  "<<
-    endl<<"From 17 March 2024 - 27 March 2024"<<endl;
+    cout << "Event [B]Food Feasta Carnival Johor" <<
+        endl << "From 17 March 2024 - 27 March 2024" << endl;
     cout << "----------------------------------------------" << endl;
-    cout<<"Which Event you will join :";
-    cin>>*eventgrp;
-    while(*eventgrp !='A' && *eventgrp !='B'){
-    	cout<<"Invalid Event Please Reenter :";
-    	cin >> *eventgrp;
-	}
-    
+    cout << "Which Event you will join (A/B): ";
+    cin >> eventInput;
+    cin.ignore(); // Consume newline character
+    while (eventInput != 'A' && eventInput != 'B') {
+        cout << "Invalid Event. Please Reenter (A/B): ";
+        cin >> eventInput;
+        cin.ignore(); // Consume newline character
     }
-    
-    string getEventDate() 
-	const 
-	{
-		string date;
-		if(*eventgrp == 'A' ||*eventgrp == 'a'){
-			date ="3 March 2024 - 13 March 2024";
-		}else if(*eventgrp == 'B'||*eventgrp == 'b'){
-			date ="17 March 2024 - 27 March 2024";
-		}
-		
-    return date;
-	}
+    tail->eventgrp = eventInput;
+}
+
+    string getEventDate() const {
+        if (tail->eventgrp == 'A' || tail->eventgrp == 'a') {
+            return "3 March 2024 - 13 March 2024";
+        } else {
+            return "17 March 2024 - 27 March 2024";
+        }
+    }
 
     string service_cat() {
-        cout << "---------------------------------" << endl;
+        char codeInput;
+                cout << "---------------------------------" << endl;
         cout << "[A]Food & Beverages" << endl;
         cout << "[B]Art & Craft" << endl;
         cout << "[C]Accessories" << endl;
         cout << "[D]Stationeries" << endl;
         cout << "[E]Home & Living" << endl;
-        cout << endl << "Service Category:";
-        cin >> code;
+        cout << "Service Category (A-E): ";
+        cin >> codeInput;
+        cin.ignore(); // Consume newline character
 
-        if (code == 'A' || code == 'a') {
-            *service_type = "Food & Beverages";
-        } else if (code == 'B' || code == 'b') {
-            *service_type = "Art & Craft";
-        } else if (code == 'C' || code == 'c') {
-            *service_type = "Accessories";
-        } else if (code == 'D' || code == 'd') {
-            *service_type = "Stationeries";
-        } else if (code == 'E' || code == 'e') {
-            *service_type = "Home & Living";
-        } else {
-            *service_type = "Others";
+        switch (codeInput) {
+            case 'A':
+            case 'a':
+                tail->service_type = "Food & Beverages";
+                break;
+            case 'B':
+            case 'b':
+                tail->service_type = "Art & Craft";
+                break;
+            case 'C':
+            case 'c':
+                tail->service_type = "Accessories";
+                break;
+            case 'D':
+            case 'd':
+                tail->service_type = "Stationeries";
+                break;
+            case 'E':
+            case 'e':
+                tail->service_type = "Home & Living";
+                break;
+            default:
+                tail->service_type = "Others";
+                break;
         }
-        return *service_type;
+
+        return tail->service_type;
     }
 
     char booth_location() {
-        char selectedBooth;
-        cout << "------------------------------------" << endl;
+        char boothInput;
+                cout << "------------------------------------" << endl;
         cout << "[A]Lot A, Price = RM900" << endl;
         cout << "[B]Lot B, Price = RM650" << endl;
         cout << "[C]Lot C, Price = RM550" << endl;
-        cout << "Booth Location: ";
-        cin >> selectedBooth;
+        cout << "Booth Location (A/B/C): ";
+        cin >> boothInput;
+        cin.ignore(); // Consume newline character
 
-        while (selectedBooth != 'A' && selectedBooth != 'B' && selectedBooth != 'C') {
-            cout << "Invalid location, please reenter Booth Location: ";
-            cin >> selectedBooth;
+        while (boothInput != 'A' && boothInput != 'B' && boothInput != 'C') {
+            cout << "Invalid Booth Location. Please Reenter (A/B/C): ";
+            cin >> boothInput;
+            cin.ignore(); // Consume newline character
         }
 
-        cout << "Booth: " << selectedBooth << endl;
+        tail->booth = boothInput;
+        tail->total = calculateBoothPrice(boothInput); // Calculate and store booth price
 
-        switch (selectedBooth) {
+        return boothInput;
+    }
+
+    int getBoothNumber(char booth) {
+        static int boothNumberA = 1;
+        static int boothNumberB = 1;
+        static int boothNumberC = 1;
+
+        switch (booth) {
             case 'A':
-                total = 900;
-                break;
+                return boothNumberA++;
             case 'B':
-                total = 650;
-                break;
+                return boothNumberB++;
             case 'C':
-                total = 550;
-                break;
+                return boothNumberC++;
+            default:
+                cerr << "Invalid booth location" << endl;
+                return -1; // or handle error as needed
         }
-
-        booth = selectedBooth;
-
-        return booth;
     }
 
-	int getBoothNumber(char booth) 
-	{
-    static int boothNumberA = 1;
-    static int boothNumberB = 1;
-    static int boothNumberC = 1;
-
-    switch (booth) {
-        case 'A':
-            return boothNumberA++;
-        case 'B':
-            return boothNumberB++;
-        case 'C':
-            return boothNumberC++;
-        default:
-            cerr << "Invalid booth location" << endl;
-            return -1; 
+    float calculateBoothPrice(char booth) const {
+        switch (booth) {
+            case 'A':
+                return 900.0f;
+            case 'B':
+                return 650.0f;
+            case 'C':
+                return 550.0f;
+            default:
+                return 0.0f; // Default case should ideally not be reached due to validation in booth_location()
+        }
     }
-}
-	
-    void saveBookingToFile() 
-	{
 
-
+    void saveBookingToFile() {
         ofstream file("booking_details.txt", ios::app);
-
-         if (file.is_open()) 
-		 {
-		 	
-		
-   		int boothNumber = getBoothNumber(booth);
-   		string lastBooth = "";
-   		
-   		ifstream read_file("booking_details.txt");
-
-        if (boothNumber == -1) {
-            // Handle error appropriately
-            file.close();
-            return;
-        }
-        file << "User: " << *userID << endl;
-
-       
-        string userEmail = getEmailFromUsername(*userID);
-        if (!userEmail.empty()) 
-		{
-            file << "Email: " << userEmail << endl;
-        }
-            file << "Vendor Company Name: " << *name << endl;
-            file << "Contact: " << *contact << endl;
-            
+        if (file.is_open()) {
+            file << "User: " << tail->userID << endl;
+            file << "Vendor Company Name: " << tail->name << endl;
+            file << "Contact: " << tail->contact << endl;
             file << "Event Date: " << getEventDate() << endl;
-            file << "Service Type: " << *service_type << endl;
-            file << "Booth Location: " << booth << endl;
-      
-            file << "Booth Number: " << booth << boothNumber<<endl;
-            file << "Total Price: RM" << total << endl;
+            file << "Service Type: " << tail->service_type << endl;
+            file << "Booth Location: " << tail->booth << endl;
+            file << "Booth Number: " << tail->booth <<getBoothNumber(tail->booth) << endl; // Include booth number
+            file << "Total Price: RM" << tail->total << endl;
             file << endl << endl;
 
-            
-            system("cls");
-            cout << "----------------------Receipt----------------------" << endl;
-            cout << "User"<<setw(17)<<": " << *userID << endl;
-            cout << "Email"<<setw(16)<<": " << userEmail << endl;
-            cout << "Vendor Company Name: " << *name << endl;
-            cout << "Contact Number"<<setw(7)<<": " << *contact << endl;
-           
-            cout << "Event Date"<<setw(11)<<": " <<  getEventDate() << endl;
-            cout << "Service Type"<<setw(9)<<": " << *service_type << endl;
-            cout << "Booth Location"<<setw(7)<<": " << booth << endl;
-            cout << "Booth Number"<<setw(9)<<": "<< booth << boothNumber<< endl;
-            cout << "Total Price"<<setw(12)<<": RM" << total << endl;
-            cout << "-------------------------------------------------" << endl;
-
-			cout << "Booking details and receipt saved to file." << endl;
-			read_file.close();
-            file.close();
-            
+            cout << "Booking details saved to file." << endl;
         } else {
-            cout << "Error opening file to save booking details and receipt." << endl;
+            cout << "Error opening file to save booking details." << endl;
         }
-    } 
-    
-    string getEmailFromUsername(const string& username) 
+        file.close();
+    }
+
+    void displayAllBookings() const {
+        ifstream file("booking_details.txt");
+        if (file.is_open()) {
+            string line;
+            while (getline(file, line)) {
+                cout << line << endl;
+            }
+            file.close();
+        } else {
+            cout << "Error opening file to display booking details." << endl;
+        }
+    }
+
+    // Additional functionalities can be added as needed
+        string getEmailFromUsername(const string& username) 
 	{
     ifstream file("user_data.txt");
 
@@ -1333,8 +1291,6 @@ public:
     
     return "";
 }
-
-
 bool caseInsensitiveMatch(string str1, string str2) {
     // Convert both strings to lower case before comparison
     transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
@@ -1356,6 +1312,7 @@ void editBooking() {
     ofstream tempFile("temp_booking_details.txt");
 
     bool found = false;
+    Node* current = nullptr;
 
     if (inputFile.is_open() && tempFile.is_open()) {
         string line;
@@ -1363,35 +1320,79 @@ void editBooking() {
             if (line.find("User: ") != string::npos && caseInsensitiveMatch(line.substr(6), searchID)) {
                 found = true;
                 cout << "Booking found. You can now update it." << endl;
-                string originalUserLine = line;
-                getline(inputFile, line); // Read the email line
+
+                // Read the entire booking block
+                vector<string> bookingBlock;
+                bookingBlock.push_back(line); // User ID line
+
+                while (getline(inputFile, line) && !line.empty()) {
+                    bookingBlock.push_back(line);
+                }
+
+                // Create a new Node for editing
+                current = new Node();
+                if (head == nullptr) {
+                    head = current;
+                    tail = current;
+                } else {
+                    tail->next = current;
+                    tail = current;
+                }
+
+                // Parse the booking block into the current Node
+                for (const auto& bookingLine : bookingBlock) {
+                    if (bookingLine.find("Vendor Company Name: ") != string::npos) {
+                        current->name = bookingLine.substr(21);
+                    } else if (bookingLine.find("Contact: ") != string::npos) {
+                        current->contact = bookingLine.substr(9);
+                    } else if (bookingLine.find("Event Date: ") != string::npos) {
+                        // Event date is derived from event group
+                    } else if (bookingLine.find("Service Type: ") != string::npos) {
+                        current->service_type = bookingLine.substr(14);
+                    } else if (bookingLine.find("Booth Location: ") != string::npos) {
+                        current->booth = bookingLine[16];
+                    } else if (bookingLine.find("Booth Number: ") != string::npos) {
+                        // Booth number handling can be done here
+                    } else if (bookingLine.find("Total Price: RM") != string::npos) {
+                        current->total = stof(bookingLine.substr(15));
+                    }
+                }
 
                 // Prompt and update other booking information
                 cout << "Vendor Company Name: ";
-                getline(cin, *name);
+                string nameInput;
+                getline(cin, nameInput);
+                current->name = nameInput;
+                
                 cout << "Contact No: ";
-                getline(cin, *contact);
-                setEventGroup();
-                service_cat();
-                booth_location();
+                string contactInput;
+                getline(cin, contactInput);
+                current->contact = contactInput;
 
-                tempFile << originalUserLine << endl; // Write back the original user line
-                tempFile << line << endl; // Write back the original email line
-                tempFile << "Vendor Company Name: " << *name << endl;
-                tempFile << "Contact: " << *contact << endl;
+                // Ensure event group is set correctly
+                setEventGroup();
+                cin.ignore(); // Consume newline character
+
+                string serviceTypeInput = service_cat(); // Assuming this function sets the service type in tail
+
+                char boothInput = booth_location(); // Assuming this function sets the booth location in tail
+
+                // Write the updated booking to the temp file
+                tempFile << "User: " << searchID << endl;
+                tempFile << "Vendor Company Name: " << current->name << endl;
+                tempFile << "Contact: " << current->contact << endl;
                 tempFile << "Event Date: " << getEventDate() << endl;
-                tempFile << "Service Type: " << *service_type << endl;
-                tempFile << "Booth Location: " << booth << endl;
-                tempFile << "Booth Number: " << booth << getBoothNumber(booth) << endl;
-                tempFile << "Total Price: RM" << total << endl;
+                tempFile << "Service Type: " << current->service_type << endl;
+                tempFile << "Booth Location: " << current->booth << endl;
+                tempFile << "Booth Number: " << current->booth << getBoothNumber(current->booth) << endl;
+                tempFile << "Total Price: RM" << calculateBoothPrice(current->booth) << endl;
                 tempFile << endl << endl;
 
                 cout << "Booking updated successfully!" << endl;
                 cout << "Do you want to continue updating? (yes/no): ";
                 string continueUpdating;
-                cin >> continueUpdating;
-                cin.ignore(); // Consume the newline character left in the input stream
-                if (caseInsensitiveMatch(continueUpdating, "no")) {
+                getline(cin, continueUpdating);
+                if (!caseInsensitiveMatch(continueUpdating, "yes")) {
                     break; // Exit the loop and function
                 }
             } else {
@@ -1402,22 +1403,22 @@ void editBooking() {
         inputFile.close();
         tempFile.close();
 
-        remove("booking_details.txt");
-        rename("temp_booking_details.txt", "booking_details.txt");
-
         if (!found) {
             cout << "Booking with User ID " << searchID << " not found." << endl;
+        } else {
+            // Replace the original file with the updated temporary file
+            remove("booking_details.txt");
+            rename("temp_booking_details.txt", "booking_details.txt");
         }
     } else {
         cout << "Error opening files for booking update." << endl;
     }
 }
-
-
-    
     friend class adminpanel;
     friend class USER; 
+
 };
+
 
 
 struct ConsoleUtils {
@@ -1546,56 +1547,87 @@ string Login() {
     return enteredUsername;
 }//for user login
 
-class Feedback : public adminpanel 
-{
+class FeedbackList {
 private:
-    string username;
-    string feedback;
-    int rating;  // New attribute for rating (you can customize the type)
+    FeedbackNode* head;
 
 public:
-    Feedback(const string& user) : username(user), rating(0) {}
+    FeedbackList() : head(nullptr) {}
 
-    void captureFeedback() 
-	{
-         cout << "Please enter your feedback about service or system (type 'exit' on a new line to finish):\n";
-    string line;
-    bool exitFlag = false;
-
-    do {
-        getline(cin, line);
-        if (line == "exit") {
-            if (!feedback.empty()) {
-                exitFlag = true;
-            } else {
-                cout << "Feedback cannot be empty. Please enter your feedback or type 'exit' again to cancel: ";
-            }
-        } else {
-            feedback += line + "\n";
+    ~FeedbackList() {
+        FeedbackNode* current = head;
+        while (current != nullptr) {
+            FeedbackNode* next = current->next;
+            delete current;
+            current = next;
         }
-    } while (!exitFlag);
-
-    cout << "Please rate your experience (1-5): ";
-    while (!(cin >> rating) || rating < 1 || rating > 5) {
-        cout << "Invalid rating. Please enter a number between 1 and 5: ";
-        cin.ignore();
     }
-    cout << "Thank you for providing feedback! Your rating: " << rating << "/5" << endl;
-    cin.ignore();
+
+    void addFeedback(const string& user, const string& fb, int rate) {
+        FeedbackNode* newNode = new FeedbackNode(user, fb, rate);
+        if (head == nullptr) {
+            head = newNode;
+        } else {
+            FeedbackNode* current = head;
+            while (current->next != nullptr) {
+                current = current->next;
+            }
+            current->next = newNode;
+        }
     }
 
     void saveFeedbackToFile() {
         ofstream file("feedback.txt", ios::app);
         if (file.is_open()) {
-            file << "Username: " << username << endl;
-            file << "Feedback:" << feedback << endl;
-            file << "Rating: " << rating << "/5" << endl;
-            file << endl;
+            FeedbackNode* current = head;
+            while (current != nullptr) {
+                file << "Username: " << current->username << endl;
+                file << "Feedback: " << current->feedback << endl;
+                file << "Rating: " << current->rating << "/5" << endl;
+                file << endl;
+                current = current->next;
+            }
             file.close();
-            cout << "Feedback and rating saved successfully!" << endl;
+            cout << "All feedback and ratings saved successfully!" << endl;
         } else {
             cout << "Error opening file to save feedback." << endl;
         }
+    }
+
+    void captureFeedback() {
+        string username;
+        cout << "Please enter your username: ";
+        getline(cin, username);
+
+        string feedback;
+        cout << "Please enter your feedback about service or system (type 'exit' on a new line to finish):\n";
+        string line;
+        bool exitFlag = false;
+
+        do {
+            getline(cin, line);
+            if (line == "exit") {
+                if (!feedback.empty()) {
+                    exitFlag = true;
+                } else {
+                    cout << "Feedback cannot be empty. Please enter your feedback or type 'exit' again to cancel: ";
+                }
+            } else {
+                feedback += line + "\n";
+            }
+        } while (!exitFlag);
+
+        int rating;
+        cout << "Please rate your experience (1-5): ";
+        while (!(cin >> rating) || rating < 1 || rating > 5) {
+            cout << "Invalid rating. Please enter a number between 1 and 5: ";
+            cin.clear(); // Clear the error flag
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Discard invalid input
+        }
+        cin.ignore(); // Ignore remaining newline character
+
+        addFeedback(username, feedback, rating);
+        cout << "Thank you for providing feedback! Your rating: " << rating << "/5" << endl;
     }
 };
 
@@ -1632,6 +1664,7 @@ void process_menu(const string& Username )
         system("cls");
         booking B;
         USER U;
+        FeedbackList feedbackList;
         
         int choice;
 
@@ -1672,10 +1705,7 @@ void process_menu(const string& Username )
             
         }else if (choice == 3) { 
             system("cls");
-            B.editBooking(); 
-            cout << "Press Enter to continue...";
-            cin.ignore();
-            cin.get();
+           B.editBooking(); 
         } else if (choice == 4) 
 		{
             U.cancelBooking();
@@ -1685,10 +1715,16 @@ void process_menu(const string& Username )
     		process_menu(Username);
         }else if (choice == 5) {
         	system("cls");
-            Feedback feedback(Username);
-            feedback.captureFeedback();
-            feedback.saveFeedbackToFile();
-            cout << "Press Enter to continue...";
+    char choice;
+    do {
+        feedbackList.captureFeedback();
+        cout << "Do you want to add another feedback? (y/n): ";
+        cin >> choice;
+        cin.ignore(); // Ignore remaining newline character
+    } while (choice == 'y' || choice == 'Y');
+
+    // Save all feedbacks to file
+    feedbackList.saveFeedbackToFile();
             cin.ignore();
             system("cls");
         }else if (choice == 6) 
@@ -1823,4 +1859,3 @@ int main() {
     } while (option != 4);
     return 0;
 }
-
