@@ -10,7 +10,7 @@
 #include <conio.h>
 #include <sstream>
 #include <algorithm>
-#include <unordered_map>
+
 
 
 using namespace std;
@@ -509,29 +509,84 @@ public:
         }
     }
 
+void viewAdminDetails() {
+    ifstream file("admin_login.txt");
+
+    if (file.is_open()) {
+        string line;
+        const int MAX_ADMINS = 100; // Adjust based on expected number of admins
+        const int MAX_FIELDS = 2;    // Number of fields per admin
+        string admins[MAX_ADMINS][MAX_FIELDS];
+        int adminCount = 0;
+
+        while (getline(file, line) && adminCount < MAX_ADMINS) {
+            stringstream ss(line);
+            string item;
+            int fieldIndex = 0;
+
+            while (ss >> item && fieldIndex < MAX_FIELDS) {
+                admins[adminCount][fieldIndex++] = item;
+            }
+            adminCount++;
+        }
+
+        file.close();
+
+        // Display the admins in a table format
+        cout << "==================== Admin Details ====================" << endl;
+
+        // Print headers with adjusted widths
+        string headers[MAX_FIELDS] = {"Username", "Password"};
+        int columnWidths[MAX_FIELDS] = {20, 30};
+
+        for (int i = 0; i < MAX_FIELDS; ++i) {
+            cout << setw(columnWidths[i]) << left << headers[i];
+        }
+        cout << endl;
+        cout << "=====================================================" << endl;
+
+        // Print each admin with adjusted widths
+        for (int i = 0; i < adminCount; ++i) {
+            for (int j = 0; j < MAX_FIELDS; ++j) {
+                cout << setw(columnWidths[j]) << left << admins[i][j];
+            }
+            cout << endl;
+        }
+
+        cout << "=====================================================" << endl;
+
+    } else {
+        cout << "Error opening admin file." << endl;
+    }
+}
     void addinAdmin() {
         int updatechoice;
         cout << "\t\t\t\t\t-------------------------------------" << endl;
-        cout << "\t\t\t\t\tEnter 1 for Add New Admin" << endl;
-        cout << "\t\t\t\t\tEnter 2 for Update Admin Information" << endl;
-        cout << "\t\t\t\t\tEnter 3 for Delete Admin" << endl;
-        cout << "\t\t\t\t\tEnter 4 for View deleted Admin" << endl;
-        cout << "\t\t\t\t\tEnter 5 for Search/Sort Admin" << endl;
-        cout << "\t\t\t\t\tEnter 6 for Go Back to Admin Panel" << endl;
+        cout << "\t\t\t\t\tEnter 1 for View Admin" << endl;
+        cout << "\t\t\t\t\tEnter 2 for Add New Admin" << endl;
+        cout << "\t\t\t\t\tEnter 3 for Update Admin Information" << endl;
+        cout << "\t\t\t\t\tEnter 4 for Delete Admin" << endl;
+        cout << "\t\t\t\t\tEnter 5 for View deleted Admin" << endl;
+        cout << "\t\t\t\t\tEnter 6 for Search/Sort Admin" << endl;
+        cout << "\t\t\t\t\tEnter 7 for Go Back to Admin Panel" << endl;
         cout << "\t\t\t\t\tYour Choice:";
         cin >> updatechoice;
         cin.ignore();
         if (updatechoice == 1) {
-            NewAdmin();
-        } else if (updatechoice == 2) {
+            viewAdminDetails();
+        }else if (updatechoice == 2){
+        	NewAdmin();
+		} else if (updatechoice == 3) {
             string adminName, newPassword;
+            viewAdminDetails(); 
             cout << "Enter admin name to update: ";
             cin >> adminName;
             cout << "Enter new password: ";
             cin >> newPassword;
-            UpdateAdmin(adminName, newPassword);
-        } else if (updatechoice == 3) {
+    UpdateAdmin(adminName, newPassword);
+        } else if (updatechoice == 4) {
             string adminToDelete;
+            viewAdminDetails();
             cout << "Enter the name of the admin to delete: ";
             cin >> adminToDelete;
             cin.ignore(); // Clear the input buffer
@@ -539,12 +594,12 @@ public:
             system("Pause");
             system("cls");
             adminpage();
-        } else if (updatechoice == 4) {
+        } else if (updatechoice == 5) {
             viewDeletionLog();
             system("Pause");
             system("cls");
             adminpage();
-        } else if (updatechoice == 5) {
+        } else if (updatechoice == 6) {
             char searchsortadmin;
                     cout << "\t\t\t\t\t-------------------------------------" << endl;
                     cout << "\t\t\t\t\tEnter 1 to Search Admin "<< endl;
@@ -557,6 +612,7 @@ public:
                         case '1':
                         {
                             string adminname;
+                            viewAdminDetails();
                             cout << "Enter Admin Name to Search: ";
                             cin.ignore(); // Ignore newline character left in input buffer
                             getline(cin, adminname); // Read full vendor name including spaces if any
@@ -574,7 +630,7 @@ public:
                         default:
                             cout << "Invalid choice. Please enter a valid option (1-3)" << endl;
                     }
-        } else if (updatechoice == 6) {
+        } else if (updatechoice == 7) {
             system("cls");
             adminpage();
         } else {
@@ -678,14 +734,14 @@ void optionbooking() {
     cout << "\t\t\t\t\tEnter 1 for View All Booking" << endl;
     cout << "\t\t\t\t\tEnter 2 for Search/Sort Booking" << endl;
     cout << "\t\t\t\t\tEnter 3 for Cancel Booking" << endl;
-    cout << "\t\t\t\t\tEnter 4 for View User Cancel Reason" << endl;
+    cout << "\t\t\t\t\tEnter 4 for View Cancel Reason" << endl;
     cout << "\t\t\t\t\tEnter 5 for Go Back to Admin Panel" << endl;
     cout << "\t\t\t\t\tYour Choice:";
     cin >> viewchoice;
 
     switch (viewchoice) {
         case 1:
-            viewBooking();
+            viewBooking(); 
             system("Pause");
             system("cls");
             adminpage();
@@ -702,6 +758,7 @@ void optionbooking() {
             switch(searchsortbooking){
                 case '1':
                 {
+                	viewBooking();
                     string userbooking;
                     cout << "Enter User Name to Search: ";
                     cin.ignore(); // Ignore newline character left in input buffer
@@ -713,6 +770,7 @@ void optionbooking() {
                     break;
                 }
                 case '2':
+                	viewBooking();
                     // sort function
                     break;
                 case '3':
@@ -727,6 +785,7 @@ void optionbooking() {
             break;
         }
         case 3: {
+        	viewBooking();
             string usernameToDelete;
             cout << "Enter the username to cancel bookings: ";
             cin >> usernameToDelete;
@@ -870,24 +929,65 @@ void binarySearchBooking(const string& userBooking) {
     }
 }
 
-   void viewBooking() 
-	{
-      ifstream file("booking_details.txt");
+void viewBooking() 
+{
+    ifstream file("booking_details.txt");
     
-      if (file.is_open()) {
+    if (file.is_open()) {
         string line;
-        cout << "================ Booking Details ================" << endl;
+        const int MAX_BOOKINGS = 100; // Adjust this based on expected number of bookings
+        const int MAX_FIELDS = 7;     // Number of fields per booking
+        string bookings[MAX_BOOKINGS][MAX_FIELDS];
+        int bookingCount = 0;
 
-        while (getline(file, line)) {
-            cout << line << endl;
+        while (getline(file, line) && bookingCount < MAX_BOOKINGS) {
+            if (line.find("User: ") == 0) {
+                bookings[bookingCount][0] = line.substr(6);  // Extract user name
+            } else if (line.find("Vendor Company Name: ") == 0) {
+                bookings[bookingCount][1] = line.substr(21);  // Extract vendor company name
+            } else if (line.find("Contact: ") == 0) {
+                bookings[bookingCount][2] = line.substr(9);  // Extract contact
+            } else if (line.find("Event Date: ") == 0) {
+                bookings[bookingCount][3] = line.substr(12);  // Extract event date
+            } else if (line.find("Service Type: ") == 0) {
+                bookings[bookingCount][4] = line.substr(14);  // Extract service type
+            } else if (line.find("Booth Location: ") == 0) {
+                bookings[bookingCount][5] = line.substr(16);  // Extract booth location
+            } else if (line.find("Total Price: ") == 0) {
+                bookings[bookingCount][6] = line.substr(13);  // Extract total price
+                bookingCount++;  // Move to the next booking after the last field
+            }
         }
-        cout << "=================================================" << endl;
 
         file.close();
-        } else {
-        cout << "Error opening booking file." << endl;
+
+        // Display the bookings in a table format
+        cout << "=================================================== Booking Details ==========================================================" << endl;
+
+        // Print headers with adjusted widths
+        string headers[MAX_FIELDS] = {"User", "Vendor Name", "Contact", "Event Date", "Service Type", "Booth", "Total Price"};
+        int columnWidths[MAX_FIELDS] = {20, 20, 15, 30, 20, 10, 15};
+        
+        for (int i = 0; i < MAX_FIELDS; ++i) {
+            cout << setw(columnWidths[i]) << left << headers[i];
         }
+        cout << endl;
+        cout << "==============================================================================================================================" << endl;
+
+        // Print each booking with adjusted widths
+        for (int i = 0; i < bookingCount; ++i) {
+            for (int j = 0; j < MAX_FIELDS; ++j) {
+                cout << setw(columnWidths[j]) << left << bookings[i][j];
+            }
+            cout << endl;
+        }
+
+        cout << "==============================================================================================================================" << endl;
+
+    } else {
+        cout << "Error opening booking file." << endl;
     }
+}
     
  void cancelreason()
  {
@@ -1042,7 +1142,6 @@ void binarySearchVendor(const string& vendorName) {
     }
 }
 
-
   void viewuser() {
     char choiceuser;
 
@@ -1059,21 +1158,51 @@ void binarySearchVendor(const string& vendorName) {
         switch (choiceuser) {
             case '1':
                 {
-                    ifstream file("user_data.txt");
+                	ifstream file("user_data.txt");
 
                     if (file.is_open()) {
                         string line;
-                        cout << "-----------------------------------------------" << endl;
-                        cout << "Vendor Details:" << endl;
-                        cout << "-----------------------------------------------" << endl;
-                        cout << "Vendor name |   Password  |     Email" << endl;
-                        cout << "-----------------------------------------------" << endl;
+                        const int MAX_VENDORS = 100; // Adjust based on expected number of vendors
+                        const int MAX_FIELDS = 3;    // Number of fields per vendor
+                        string vendors[MAX_VENDORS][MAX_FIELDS];
+                        int vendorCount = 0;
 
-                        while (getline(file, line)) {
-                            cout<<line<<endl;
+                        while (getline(file, line) && vendorCount < MAX_VENDORS) {
+                            stringstream ss(line);
+                            string item;
+                            int fieldIndex = 0;
+
+                            while (ss >> item && fieldIndex < MAX_FIELDS) {
+                                vendors[vendorCount][fieldIndex++] = item;
+                            }
+                            vendorCount++;
                         }
 
                         file.close();
+
+                        // Display the vendors in a table format
+                        cout << "================ Vendor Details ================" << endl;
+
+                        // Print headers with adjusted widths
+                        string headers[MAX_FIELDS] = {"Vendor Name", "Password", "Email"};
+                        int columnWidths[MAX_FIELDS] = {20, 15, 30};
+
+                        for (int i = 0; i < MAX_FIELDS; ++i) {
+                            cout << setw(columnWidths[i]) << left << headers[i];
+                        }
+                        cout << endl;
+                        cout << "=====================================================================" << endl;
+
+                        // Print each vendor with adjusted widths
+                        for (int i = 0; i < vendorCount; ++i) {
+                            for (int j = 0; j < MAX_FIELDS; ++j) {
+                                cout << setw(columnWidths[j]) << left << vendors[i][j];
+                            }
+                            cout << endl;
+                        }
+
+                        cout << "=====================================================================" << endl;
+
                     } else {
                         cout << "Error opening user file." << endl;
                     }
@@ -1092,6 +1221,52 @@ void binarySearchVendor(const string& vendorName) {
                     switch(searchsortchoice){
                         case '1':
                         {
+                        	                	ifstream file("user_data.txt");
+
+                    if (file.is_open()) {
+                        string line;
+                        const int MAX_VENDORS = 100; // Adjust based on expected number of vendors
+                        const int MAX_FIELDS = 3;    // Number of fields per vendor
+                        string vendors[MAX_VENDORS][MAX_FIELDS];
+                        int vendorCount = 0;
+
+                        while (getline(file, line) && vendorCount < MAX_VENDORS) {
+                            stringstream ss(line);
+                            string item;
+                            int fieldIndex = 0;
+
+                            while (ss >> item && fieldIndex < MAX_FIELDS) {
+                                vendors[vendorCount][fieldIndex++] = item;
+                            }
+                            vendorCount++;
+                        }
+
+                        file.close();
+
+                        // Display the vendors in a table format
+                        cout << "================ Vendor Details ================" << endl;
+
+                        // Print headers with adjusted widths
+                        string headers[MAX_FIELDS] = {"Vendor Name", "Password", "Email"};
+                        int columnWidths[MAX_FIELDS] = {20, 15, 30};
+
+                        for (int i = 0; i < MAX_FIELDS; ++i) {
+                            cout << setw(columnWidths[i]) << left << headers[i];
+                        }
+                        cout << endl;
+                        cout << "=====================================================================" << endl;
+
+                        // Print each vendor with adjusted widths
+                        for (int i = 0; i < vendorCount; ++i) {
+                            for (int j = 0; j < MAX_FIELDS; ++j) {
+                                cout << setw(columnWidths[j]) << left << vendors[i][j];
+                            }
+                            cout << endl;
+                        }
+
+                        cout << "=====================================================================" << endl;
+
+                    } 
                             string vendorname;
                             cout << "Enter Vendor Name to Search: ";
                             cin.ignore(); // Ignore newline character left in input buffer
@@ -1180,7 +1355,7 @@ void adminpage() {
     cout << "\t\t\t\t\t=========================================" << endl;
     cout << "\t\t\t\t\t|  Press 1 to View/Delete User         |" << endl;
     cout << "\t\t\t\t\t|  Press 2 to View/Cancel Booking      |" << endl;
-    cout << "\t\t\t\t\t|  Press 3 to View Total Profit/Vendor |" << endl;
+    cout << "\t\t\t\t\t|  Press 3 to View Booked Revenue      |" << endl;
     cout << "\t\t\t\t\t|  Press 4 to View Categories          |" << endl;
     cout << "\t\t\t\t\t|  Press 5 to Update Admin Information |" << endl;
     cout << "\t\t\t\t\t|  Press 6 to View User Feedback       |" << endl; 
@@ -1493,24 +1668,51 @@ public:
         }
     }
 
-    // Method to edit a booking based on user ID
-void editBooking(const string& userID) {
-	
-	ifstream inputFile("booking_details.txt");
-    ofstream tempFile("temp_booking_details.txt");
-    unordered_map<string, BookingDetails> bookingMap;
-    vector<BookingDetails> bookings;
-    string searchVendorName;
-    bool found = false;
+struct BookingNode {
+    BookingDetails data;
+    BookingNode* next;
+};
 
-    // Read and store all bookings in a vector
+void displayBookings(BookingNode* head) {
+    cout << "-------------Current Booking Details-----------" << endl;
+    cout << left << setw(15) << "Vendor Name" << setw(12) << "Contact" << setw(30) << "Event Date" << setw(20) << "Service Type" << setw(15) << "Booth" << setw(15) << "Booth Number" << setw(15) << "Total Price" << endl;
+    cout << "---------------------------------------------------------------------------------------------------------------------" << endl;
+    for (BookingNode* node = head; node != nullptr; node = node->next) {
+        cout << left << setw(15) << node->data.vendorName << setw(12) << node->data.contact << setw(30) << node->data.eventDate << setw(20) << node->data.serviceType << setw(15) << node->data.booth << setw(15) << node->data.boothNumber << "RM" << node->data.totalPrice << endl;
+    }
+    cout << "---------------------------------------------------------------------------------------------------------------------" << endl;
+}
+
+void displayBookingDetails(const BookingDetails& bd) {
+    cout << "-------------Booking Details-----------" << endl;
+    cout << left << setw(15) << "Vendor Name: " << bd.vendorName << endl;
+    cout << left << setw(15) << "Contact: " << bd.contact << endl;
+    cout << left << setw(15) << "Event Date: " << bd.eventDate << endl;
+    cout << left << setw(15) << "Service Type: " << bd.serviceType << endl;
+    cout << left << setw(15) << "Booth: " << bd.booth << endl;
+    cout << left << setw(15) << "Booth Number: " << bd.boothNumber << endl;
+    cout << left << setw(15) << "Total Price: RM" << bd.totalPrice << endl;
+    cout << "---------------------------------------" << endl;
+}
+
+
+BookingNode* loadBookings(const string& userID) {
+    ifstream inputFile("booking_details.txt");
+    BookingNode* head = nullptr;
+    BookingNode* tail = nullptr;
+    string line;
+    BookingDetails bd;
+    bool isCurrentUser = false;
+
     if (inputFile.is_open()) {
-        string line;
-        BookingDetails bd;
-        bool isCurrentUser = false;
-
         while (getline(inputFile, line)) {
             if (line.find("User: ") != string::npos) {
+                if (isCurrentUser) {
+                    BookingNode* newNode = new BookingNode{bd, nullptr};
+                    if (!head) head = newNode;
+                    else tail->next = newNode;
+                    tail = newNode;
+                }
                 bd.user = line.substr(6);
                 isCurrentUser = (bd.user == userID);
             }
@@ -1530,289 +1732,202 @@ void editBooking(const string& userID) {
                     bd.boothNumber = line.substr(14);
                 } else if (line.find("Total Price: RM") != string::npos) {
                     bd.totalPrice = stof(line.substr(15));
-                    bookingMap[bd.vendorName] = bd;
-                    bookings.push_back(bd);
-                    isCurrentUser = false; // Reset for the next entry
                 }
             }
+        }
+        if (isCurrentUser) {
+            BookingNode* newNode = new BookingNode{bd, nullptr};
+            if (!head) head = newNode;
+            else tail->next = newNode;
         }
         inputFile.close();
     } else {
         cout << "Error opening booking details file." << endl;
-        return;
     }
 
-    // Display all bookings in a table format
-    cout << "-------------Current Booking Details-----------" << endl;
-    cout << left << setw(15) << "Vendor Name" << setw(12) << "Contact" << setw(30) << "Event Date" << setw(20) << "Service Type" << setw(15) << "Booth" << setw(15) << "Booth Number" << setw(15) << "Total Price" << endl;
-    cout << "---------------------------------------------------------------------------------------------------------------------" << endl;
-    for (const auto& booking : bookings) {
-        cout << left << setw(15) << booking.vendorName << setw(12) << booking.contact << setw(30) << booking.eventDate << setw(20) << booking.serviceType << setw(15) << booking.booth << setw(15) << booking.boothNumber << "RM" << booking.totalPrice << endl;
-    }
-    cout << "---------------------------------------------------------------------------------------------------------------------" << endl;
+    return head;
+}
 
-    // Prompt the user to choose which booking to update
+void saveBookings(BookingNode* head) {
+    ofstream tempFile("temp_booking_details.txt");
+
+    for (BookingNode* node = head; node != nullptr; node = node->next) {
+        const auto& b = node->data;
+        tempFile << "User: " << b.user << endl;
+        tempFile << "Vendor Company Name: " << b.vendorName << endl;
+        tempFile << "Contact: " << b.contact << endl;
+        tempFile << "Event Date: " << b.eventDate << endl;
+        tempFile << "Service Type: " << b.serviceType << endl;
+        tempFile << "Booth Location: " << b.booth << endl;
+        tempFile << "Booth Number: " << b.boothNumber << endl;
+        tempFile << "Total Price: RM" << b.totalPrice << endl << endl;
+    }
+
+    tempFile.close();
+    remove("booking_details.txt");
+    rename("temp_booking_details.txt", "booking_details.txt");
+}
+
+void editBooking(const string& userID) {
+    BookingNode* head = loadBookings(userID);
+    if (!head) return;
+
+    displayBookings(head);
+
+    string searchVendorName;
     cout << "Enter the Vendor Company Name you want to update (or type 'exit' to cancel): ";
     getline(cin, searchVendorName);
     if (searchVendorName == "exit") {
         cout << "Update canceled." << endl;
-        return; // Exit the function
-    }
-
-    auto it = bookingMap.find(searchVendorName);
-    if (it != bookingMap.end()) {
-        found = true;
-        BookingDetails& bd = it->second;
-
-        cout << "Booking found. You can now update it." << endl;
-        cout << "Vendor Company Name: ";
-        getline(cin, bd.vendorName);
-        cout << "Contact No: ";
-        getline(cin, bd.contact);
-        cout << "Event [A] Food Feasta Carnival Kuala Lumpur\n";
-        cout << "From 3 March 2024 - 13 March 2024\n";
-        cout << "Event [B] Food Feasta Carnival Johor\n";
-        cout << "From 17 March 2024 - 27 March 2024\n";
-        cout << "Which Event you will join (A/B): ";
-        char eventInput;
-        cin >> eventInput;
-        cin.ignore(); // Consume newline character
-        bd.eventDate = (eventInput == 'A' || eventInput == 'a') ? "3 March 2024 - 13 March 2024" : "17 March 2024 - 27 March 2024";
-
-        cout << "[A] Food & Beverages\n[B] Art & Craft\n[C] Accessories\n[D] Stationeries\n[E] Home & Living\n";
-        cout << "Service Category (A-E): ";
-        char serviceInput;
-        cin >> serviceInput;
-        cin.ignore(); // Consume newline character
-        switch (serviceInput) {
-            case 'A': case 'a': bd.serviceType = "Food & Beverages"; break;
-            case 'B': case 'b': bd.serviceType = "Art & Craft"; break;
-            case 'C': case 'c': bd.serviceType = "Accessories"; break;
-            case 'D': case 'd': bd.serviceType = "Stationeries"; break;
-            case 'E': case 'e': bd.serviceType = "Home & Living"; break;
-            default: bd.serviceType = "Others"; break;
-        }
-
-        cout << "[A] Lot A, Price = RM900\n[B] Lot B, Price = RM650\n[C] Lot C, Price = RM550\n";
-        cout << "Booth Location (A/B/C): ";
-        char boothInput;
-        cin >> boothInput;
-        cin.ignore(); // Consume newline character
-        bd.booth = boothInput;
-        bd.totalPrice = (boothInput == 'A') ? 900.0f : (boothInput == 'B') ? 650.0f : 550.0f;
-        bd.boothNumber = bd.booth + to_string((boothInput == 'A') ? 1 : (boothInput == 'B') ? 2 : 3); // Example logic to set booth number
-
-        // Write all updated bookings to the temp file
-        for (const auto& pair : bookingMap) {
-            const auto& b = pair.second;
-            tempFile << "User: " << b.user << endl;
-            tempFile << "Vendor Company Name: " << b.vendorName << endl;
-            tempFile << "Contact: " << b.contact << endl;
-            tempFile << "Event Date: " << b.eventDate << endl;
-            tempFile << "Service Type: " << b.serviceType << endl;
-            tempFile << "Booth Location: " << b.booth << endl;
-            tempFile << "Booth Number: " << b.boothNumber << endl;
-            tempFile << "Total Price: RM" << b.totalPrice << endl << endl;
-        }
-
-        cout << "Booking updated successfully!" << endl;
-        
-        cin.ignore();
-    } else {
-        cout << "No booking found for Vendor Company Name: " << searchVendorName << "." << endl;
-    }
-
-    tempFile.close();
-
-    if (found) {
-        remove("booking_details.txt");
-        rename("temp_booking_details.txt", "booking_details.txt");
-
-        // Display the updated table
-            bookings.clear();
-        ifstream updatedFile("booking_details.txt");
-        if (updatedFile.is_open()) {
-            string line;
-            while (getline(updatedFile, line)) {
-                BookingDetails bd;
-                if (line.find("User: ") != string::npos) {
-                    bd.user = line.substr(6);
-                    getline(updatedFile, line);
-                    bd.vendorName = line.substr(21);
-                    getline(updatedFile, line);
-                    bd.contact = line.substr(9);
-                    getline(updatedFile, line);
-                    bd.eventDate = line.substr(12);
-                    getline(updatedFile, line);
-                    bd.serviceType = line.substr(14);
-                    getline(updatedFile, line);
-                    bd.booth = line[16];
-                    getline(updatedFile, line);
-                    bd.boothNumber = line.substr(14);
-                    getline(updatedFile, line);
-                    bd.totalPrice = stof(line.substr(15));
-                    bookings.push_back(bd);
-                }
-            }
-            updatedFile.close();
-        }
-
-        // Display the updated table
-        system("cls");
-        cout << "-------------Updated Booking Details-----------" << endl;
-        cout << left << setw(15) << "Vendor Name" << setw(12) << "Contact" << setw(30) << "Event Date" << setw(20) << "Service Type" << setw(15) << "Booth" << setw(15) << "Booth Number" << setw(15) << "Total Price" << endl;
-        cout << "---------------------------------------------------------------------------------------------------------------------" << endl;
-        for (const auto& booking : bookings) {
-            cout << left << setw(15) << booking.vendorName << setw(12) << booking.contact << setw(30) << booking.eventDate << setw(20) << booking.serviceType << setw(15) << booking.booth << setw(15) << booking.boothNumber << "RM" << booking.totalPrice << endl;
-        }
-        cout << "---------------------------------------------------------------------------------------------------------------------" << endl;
-
         cout << "Press Enter to continue...";
-        cin.ignore();
-    }
-}
-
-
-    // Method to cancel a booking based on user ID
-    void cancelBooking(const string& userID) {
-        ifstream inputFile("booking_details.txt");
-    ofstream tempFile("temp_booking_details.txt");
-    unordered_map<string, BookingDetails> bookingMap;
-    vector<BookingDetails> bookings;
-    string searchVendorName;
-    bool found = false;
-
-    // Read and store all bookings in a vector
-    if (inputFile.is_open()) {
-        string line;
-        BookingDetails bd;
-        bool isCurrentUser = false;
-
-        while (getline(inputFile, line)) {
-            if (line.find("User: ") != string::npos) {
-                bd.user = line.substr(6);
-                isCurrentUser = (bd.user == userID);
-            }
-
-            if (isCurrentUser) {
-                if (line.find("Vendor Company Name: ") != string::npos) {
-                    bd.vendorName = line.substr(21);
-                } else if (line.find("Contact: ") != string::npos) {
-                    bd.contact = line.substr(9);
-                } else if (line.find("Event Date: ") != string::npos) {
-                    bd.eventDate = line.substr(12);
-                } else if (line.find("Service Type: ") != string::npos) {
-                    bd.serviceType = line.substr(14);
-                } else if (line.find("Booth Location: ") != string::npos) {
-                    bd.booth = line[16];
-                } else if (line.find("Booth Number: ") != string::npos) {
-                    bd.boothNumber = line.substr(14);
-                } else if (line.find("Total Price: RM") != string::npos) {
-                    bd.totalPrice = stof(line.substr(15));
-                    bookingMap[bd.vendorName] = bd;
-                    bookings.push_back(bd);
-                    isCurrentUser = false; // Reset for the next entry
-                }
-            }
-        }
-        inputFile.close();
-    } else {
-        cout << "Error opening booking details file." << endl;
+    	cin.ignore();
+        system("cls");
+    	process_menu(userID);
         return;
     }
 
-    // Display all bookings in a table format
-    cout << "-------------Current Booking Details-----------" << endl;
-    cout << left << setw(15) << "Vendor Name" << setw(12) << "Contact" << setw(30) << "Event Date" << setw(20) << "Service Type" << setw(15) << "Booth" << setw(15) << "Booth Number" << setw(15) << "Total Price" << endl;
-    cout << "---------------------------------------------------------------------------------------------------------------------" << endl;
-    for (const auto& booking : bookings) {
-        cout << left << setw(15) << booking.vendorName << setw(12) << booking.contact << setw(30) << booking.eventDate << setw(20) << booking.serviceType << setw(15) << booking.booth << setw(15) << booking.boothNumber << "RM" << booking.totalPrice << endl;
-    }
-    cout << "---------------------------------------------------------------------------------------------------------------------" << endl;
+    BookingNode* node = head;
+    bool found = false;
+    while (node) {
+        if (node->data.vendorName == searchVendorName) {
+            found = true;
+            displayBookingDetails(node->data);
+            BookingDetails& bd = node->data;
 
-    // Prompt the user to choose which booking to cancel
+            cout << "Booking found. You can now update it." << endl;
+            cout << "Vendor Company Name: ";
+            getline(cin, bd.vendorName);
+            cout << "Contact No: ";
+            getline(cin, bd.contact);
+            cout << "Event [A] Food Feasta Carnival Kuala Lumpur\n";
+            cout << "From 3 March 2024 - 13 March 2024\n";
+            cout << "Event [B] Food Feasta Carnival Johor\n";
+            cout << "From 17 March 2024 - 27 March 2024\n";
+            cout << "Which Event you will join (A/B): ";
+            char eventInput;
+            cin >> eventInput;
+            cin.ignore(); // Consume newline character
+            bd.eventDate = (eventInput == 'A' || eventInput == 'a') ? "3 March 2024 - 13 March 2024" : "17 March 2024 - 27 March 2024";
+
+            cout << "[A] Food & Beverages\n[B] Art & Craft\n[C] Accessories\n[D] Stationeries\n[E] Home & Living\n";
+            cout << "Service Category (A-E): ";
+            char serviceInput;
+            cin >> serviceInput;
+            cin.ignore(); // Consume newline character
+            switch (serviceInput) {
+                case 'A': case 'a': bd.serviceType = "Food & Beverages"; break;
+                case 'B': case 'b': bd.serviceType = "Art & Craft"; break;
+                case 'C': case 'c': bd.serviceType = "Accessories"; break;
+                case 'D': case 'd': bd.serviceType = "Stationeries"; break;
+                case 'E': case 'e': bd.serviceType = "Home & Living"; break;
+                default: bd.serviceType = "Others"; break;
+            }
+
+            cout << "[A] Lot A, Price = RM900\n[B] Lot B, Price = RM650\n[C] Lot C, Price = RM550\n";
+            cout << "Booth Location (A/B/C): ";
+            char boothInput;
+            cin >> boothInput;
+            cin.ignore(); // Consume newline character
+            bd.booth = boothInput;
+            bd.totalPrice = (boothInput == 'A') ? 900.0f : (boothInput == 'B') ? 650.0f : 550.0f;
+            bd.boothNumber = bd.booth + to_string((boothInput == 'A') ? 1 : (boothInput == 'B') ? 2 : 3); // Example logic to set booth number
+
+            cout << "Booking updated successfully!" << endl;
+            break;
+        }
+        node = node->next;
+    }
+
+    if (!found) {
+        cout << "No booking found for Vendor Company Name: " << searchVendorName << "." << endl;
+    }
+
+    saveBookings(head);
+    displayBookings(head);
+
+    cout << "Press Enter to continue...";
+    cin.ignore();
+    process_menu(userID);
+}
+
+void cancelBooking(const string& userID) {
+    BookingNode* head = loadBookings(userID);
+    if (!head) return;
+
+    displayBookings(head);
+
+    string searchVendorName;
     cout << "Enter the Vendor Company Name you want to cancel (or type 'exit' to cancel): ";
     getline(cin, searchVendorName);
     if (searchVendorName == "exit") {
         cout << "Cancellation canceled." << endl;
-        return; // Exit the function
+        cout << "Press Enter to continue...";
+    	cin.ignore();
+        system("cls");
+    	process_menu(userID);
+        return;
     }
 
-    auto it = bookingMap.find(searchVendorName);
-    if (it != bookingMap.end()) {
-        found = true;
-        BookingDetails& bd = it->second;
+    BookingNode* node = head;
+    BookingNode* prev = nullptr;
+    bool found = false;
+    while (node) {
+        if (node->data.vendorName == searchVendorName) {
+            found = true;
+            displayBookingDetails(node->data);
+            
+            cout << "Booking found. Do you want to cancel it? (yes/no): ";
+            string confirmation;
+            cin >> confirmation;
+            cin.ignore(); // Consume newline character
 
-        cout << "Booking found. Do you want to cancel it? (yes/no): ";
-        string confirmation;
-        cin >> confirmation;
-        cin.ignore(); // Consume newline character
+            if (confirmation == "yes" || confirmation == "YES") {
+                string cancelReason;
+                cout << "Enter the reason for cancellation: ";
+                getline(cin, cancelReason);
 
-        if (confirmation == "yes" || confirmation == "YES") {
-            string cancelReason;
-            cout << "Enter the reason for cancellation: ";
-            getline(cin, cancelReason);
+                ofstream cancelReasonFile("cancellation_log.txt", ios::app);
+                if (cancelReasonFile.is_open()) {
+                    cancelReasonFile << "User ID: " << userID << "\n";
+                    cancelReasonFile << "Cancel Reason: " << cancelReason << "\n";
+                    cancelReasonFile << "Booking Details:\n";
+                    cancelReasonFile << "Vendor Company Name: " << node->data.vendorName << "\n";
+                    cancelReasonFile << "Contact: " << node->data.contact << "\n";
+                    cancelReasonFile << "Event Date: " << node->data.eventDate << "\n";
+                    cancelReasonFile << "Service Type: " << node->data.serviceType << "\n";
+                    cancelReasonFile << "Booth Location: " << node->data.booth << "\n";
+                    cancelReasonFile << "Booth Number: " << node->data.boothNumber << "\n";
+                    cancelReasonFile << "Total Price: RM" << node->data.totalPrice << "\n\n";
+                    cancelReasonFile.close();
+                } else {
+                    cout << "Error opening cancellation log file." << endl;
+                }
 
-            // Save the cancel reason to the cancelReasonFile
-            ofstream cancelReasonFile("cancellation_log.txt", ios::app);
-            if (cancelReasonFile.is_open()) {
-                cancelReasonFile << "User ID: " << userID << "\n";
-                cancelReasonFile << "Cancel Reason: " << cancelReason << "\n";
-                cancelReasonFile << "Booking Details:\n";
-                cancelReasonFile << "Vendor Company Name: " << bd.vendorName << "\n";
-                cancelReasonFile << "Contact: " << bd.contact << "\n";
-                cancelReasonFile << "Event Date: " << bd.eventDate << "\n";
-                cancelReasonFile << "Service Type: " << bd.serviceType << "\n";
-                cancelReasonFile << "Booth Location: " << bd.booth << "\n";
-                cancelReasonFile << "Booth Number: " << bd.boothNumber << "\n";
-                cancelReasonFile << "Total Price: RM" << bd.totalPrice << "\n\n";
-                cancelReasonFile.close();
+                if (prev) {
+                    prev->next = node->next;
+                } else {
+                    head = node->next;
+                }
+                delete node;
+
+                cout << "\033[1;32mBooking for vendor company name " << searchVendorName << " has been canceled.\033[0m" << endl;
+                break;
             } else {
-                cout << "Error opening cancellation log file." << endl;
+                cout << "Cancellation aborted." << endl;
+                return;
             }
-
-            // Remove the booking from the vector and the map
-            bookings.erase(remove_if(bookings.begin(), bookings.end(),
-                [&bd](const BookingDetails& booking) { return booking.vendorName == bd.vendorName; }),
-                bookings.end());
-            bookingMap.erase(it);
-
-            cout << "\033[1;32mBooking for vendor company name " << searchVendorName << " has been canceled.\033[0m" << endl;
-            cin.ignore();
-        } else {
-            cout << "Cancellation aborted." << endl;
         }
-    } else {
+        prev = node;
+        node = node->next;
+    }
+
+    if (!found) {
         cout << "No booking found for Vendor Company Name: " << searchVendorName << "." << endl;
     }
 
-    // Write all remaining bookings to the temp file
-    for (const auto& booking : bookings) {
-        tempFile << "User: " << booking.user << endl;
-        tempFile << "Vendor Company Name: " << booking.vendorName << endl;
-        tempFile << "Contact: " << booking.contact << endl;
-        tempFile << "Event Date: " << booking.eventDate << endl;
-        tempFile << "Service Type: " << booking.serviceType << endl;
-        tempFile << "Booth Location: " << booking.booth << endl;
-        tempFile << "Booth Number: " << booking.boothNumber << endl;
-        tempFile << "Total Price: RM" << booking.totalPrice << endl << endl;
-    }
+    saveBookings(head);
+    displayBookings(head);
 
-    tempFile.close();
-
-    remove("booking_details.txt");
-    rename("temp_booking_details.txt", "booking_details.txt");
-    
-    system("cls");
-    cout << "-------------Updated Booking Details-----------" << endl;
-    cout << left << setw(15) << "Vendor Name" << setw(12) << "Contact" << setw(30) << "Event Date" << setw(20) << "Service Type" << setw(15) << "Booth" << setw(15) << "Booth Number" << setw(15) << "Total Price" << endl;
-    cout << "---------------------------------------------------------------------------------------------------------------------" << endl;
-    for (const auto& booking : bookings) {
-        cout << left << setw(15) << booking.vendorName << setw(12) << booking.contact << setw(30) << booking.eventDate << setw(20) << booking.serviceType << setw(15) << booking.booth << setw(15) << booking.boothNumber << "RM" << booking.totalPrice << endl;
-    }
-    cout << "---------------------------------------------------------------------------------------------------------------------" << endl;
-
-    // Return to the process menu
     cout << "Press Enter to continue...";
     cin.ignore();
     system("cls");
@@ -2078,6 +2193,7 @@ void process_menu(const string& Username )
 			cin.get();
         } else if (choice == 2) 
 		{
+			
             detaildisplay(Username);
             
         }else if (choice == 3) { 
@@ -2085,12 +2201,13 @@ void process_menu(const string& Username )
            B.editBooking(Username); 
         } else if (choice == 4) 
 		{
-			
+				system("cls");
             B.cancelBooking(Username);
             
                 break;
         }else if (choice == 5) {
         	system("cls");
+        	
     char choice;
     do {
         feedbackList.captureFeedback();
@@ -2113,11 +2230,11 @@ void process_menu(const string& Username )
     }
 }
 
-void merge(vector<BookingDetails>& bookings, int left, int mid, int right) {
+void merge(BookingDetails bookings[], int left, int mid, int right) {
     int n1 = mid - left + 1;
     int n2 = right - mid;
 
-    vector<BookingDetails> L(n1), R(n2);
+    BookingDetails L[n1], R[n2];
 
     for (int i = 0; i < n1; i++)
         L[i] = bookings[left + i];
@@ -2149,7 +2266,7 @@ void merge(vector<BookingDetails>& bookings, int left, int mid, int right) {
     }
 }
 
-void mergeSort(vector<BookingDetails>& bookings, int left, int right) {
+void mergeSort(BookingDetails bookings[], int left, int right) {
     if (left < right) {
         int mid = left + (right - left) / 2;
 
@@ -2160,8 +2277,7 @@ void mergeSort(vector<BookingDetails>& bookings, int left, int right) {
     }
 }
 
-void insertionSort(vector<BookingDetails>& bookings) {
-    int n = bookings.size();
+void insertionSort(BookingDetails bookings[], int n) {
     for (int i = 1; i < n; i++) {
         BookingDetails key = bookings[i];
         int j = i - 1;
@@ -2185,7 +2301,9 @@ void detaildisplay(const string& userIdfile) {
     ifstream file("booking_details.txt");
 
     if (file.is_open()) {
-        vector<BookingDetails> bookings;
+        const int maxBookings = 100;
+        BookingDetails bookings[maxBookings];
+        int bookingCount = 0;
         string line;
         bool userFound = false;
 
@@ -2217,7 +2335,7 @@ void detaildisplay(const string& userIdfile) {
                             cout << "Invalid total price: " << priceStr << endl;
                     }
                 }
-                bookings.push_back(bd);
+                bookings[bookingCount++] = bd;
             }
         }
         file.close();
@@ -2234,7 +2352,8 @@ void detaildisplay(const string& userIdfile) {
         cout << "-------------Original Booking Details-----------" << endl;
         cout << left << setw(15) << "Vendor Name" << setw(12) << "Contact" << setw(30) << "Event Date" << setw(20) << "Service Type" << setw(15) << "Booth" << setw(15) << "Booth Number" << setw(15) << "Total Price" << endl;
         cout << "---------------------------------------------------------------------------------------------------------------------" << endl;
-        for (const auto& booking : bookings) {
+        for (int i = 0; i < bookingCount; i++) {
+            const auto& booking = bookings[i];
             cout << left << setw(15) << booking.vendorName << setw(12) << booking.contact << setw(30) << booking.eventDate << setw(20) << booking.serviceType << setw(15) << booking.booth << setw(15) << booking.boothNumber << "RM" << booking.totalPrice << endl;
         }
         cout << "---------------------------------------------------------------------------------------------------------------------" << endl;
@@ -2257,10 +2376,10 @@ void detaildisplay(const string& userIdfile) {
 
             if (algorithmChoice == '1') {
                 // Sort bookings by booth number using Merge Sort
-                mergeSort(bookings, 0, bookings.size() - 1);
+                mergeSort(bookings, 0, bookingCount - 1);
             } else if (algorithmChoice == '2') {
                 // Sort bookings by booth number using Insertion Sort
-                insertionSort(bookings);
+                insertionSort(bookings, bookingCount);
             } else {
                 cout << "Invalid choice. Skipping sorting." << endl;
             }
@@ -2269,7 +2388,8 @@ void detaildisplay(const string& userIdfile) {
             cout << "-------------Sorted Booking Details-----------" << endl;
             cout << left << setw(15) << "Vendor Name" << setw(12) << "Contact" << setw(30) << "Event Date" << setw(20) << "Service Type" << setw(15) << "Booth" << setw(15) << "Booth Number" << setw(15) << "Total Price" << endl;
             cout << "---------------------------------------------------------------------------------------------------------------------" << endl;
-            for (const auto& booking : bookings) {
+            for (int i = 0; i < bookingCount; i++) {
+                const auto& booking = bookings[i];
                 cout << left << setw(15) << booking.vendorName << setw(12) << booking.contact << setw(30) << booking.eventDate << setw(20) << booking.serviceType << setw(15) << booking.booth << setw(15) << booking.boothNumber << "RM" << booking.totalPrice << endl;
             }
             cout << "---------------------------------------------------------------------------------------------------------------------" << endl;
