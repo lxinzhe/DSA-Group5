@@ -509,29 +509,84 @@ public:
         }
     }
 
+void viewAdminDetails() {
+    ifstream file("admin_login.txt");
+
+    if (file.is_open()) {
+        string line;
+        const int MAX_ADMINS = 100; // Adjust based on expected number of admins
+        const int MAX_FIELDS = 2;    // Number of fields per admin
+        string admins[MAX_ADMINS][MAX_FIELDS];
+        int adminCount = 0;
+
+        while (getline(file, line) && adminCount < MAX_ADMINS) {
+            stringstream ss(line);
+            string item;
+            int fieldIndex = 0;
+
+            while (ss >> item && fieldIndex < MAX_FIELDS) {
+                admins[adminCount][fieldIndex++] = item;
+            }
+            adminCount++;
+        }
+
+        file.close();
+
+        // Display the admins in a table format
+        cout << "==================== Admin Details ====================" << endl;
+
+        // Print headers with adjusted widths
+        string headers[MAX_FIELDS] = {"Username", "Password"};
+        int columnWidths[MAX_FIELDS] = {20, 30};
+
+        for (int i = 0; i < MAX_FIELDS; ++i) {
+            cout << setw(columnWidths[i]) << left << headers[i];
+        }
+        cout << endl;
+        cout << "=====================================================" << endl;
+
+        // Print each admin with adjusted widths
+        for (int i = 0; i < adminCount; ++i) {
+            for (int j = 0; j < MAX_FIELDS; ++j) {
+                cout << setw(columnWidths[j]) << left << admins[i][j];
+            }
+            cout << endl;
+        }
+
+        cout << "=====================================================" << endl;
+
+    } else {
+        cout << "Error opening admin file." << endl;
+    }
+}
     void addinAdmin() {
         int updatechoice;
         cout << "\t\t\t\t\t-------------------------------------" << endl;
-        cout << "\t\t\t\t\tEnter 1 for Add New Admin" << endl;
-        cout << "\t\t\t\t\tEnter 2 for Update Admin Information" << endl;
-        cout << "\t\t\t\t\tEnter 3 for Delete Admin" << endl;
-        cout << "\t\t\t\t\tEnter 4 for View deleted Admin" << endl;
-        cout << "\t\t\t\t\tEnter 5 for Search/Sort Admin" << endl;
-        cout << "\t\t\t\t\tEnter 6 for Go Back to Admin Panel" << endl;
+        cout << "\t\t\t\t\tEnter 1 for View Admin" << endl;
+        cout << "\t\t\t\t\tEnter 2 for Add New Admin" << endl;
+        cout << "\t\t\t\t\tEnter 3 for Update Admin Information" << endl;
+        cout << "\t\t\t\t\tEnter 4 for Delete Admin" << endl;
+        cout << "\t\t\t\t\tEnter 5 for View deleted Admin" << endl;
+        cout << "\t\t\t\t\tEnter 6 for Search/Sort Admin" << endl;
+        cout << "\t\t\t\t\tEnter 7 for Go Back to Admin Panel" << endl;
         cout << "\t\t\t\t\tYour Choice:";
         cin >> updatechoice;
         cin.ignore();
         if (updatechoice == 1) {
-            NewAdmin();
-        } else if (updatechoice == 2) {
+            viewAdminDetails();
+        }else if (updatechoice == 2){
+        	NewAdmin();
+		} else if (updatechoice == 3) {
             string adminName, newPassword;
+            viewAdminDetails(); 
             cout << "Enter admin name to update: ";
             cin >> adminName;
             cout << "Enter new password: ";
             cin >> newPassword;
-            UpdateAdmin(adminName, newPassword);
-        } else if (updatechoice == 3) {
+    UpdateAdmin(adminName, newPassword);
+        } else if (updatechoice == 4) {
             string adminToDelete;
+            viewAdminDetails();
             cout << "Enter the name of the admin to delete: ";
             cin >> adminToDelete;
             cin.ignore(); // Clear the input buffer
@@ -539,12 +594,12 @@ public:
             system("Pause");
             system("cls");
             adminpage();
-        } else if (updatechoice == 4) {
+        } else if (updatechoice == 5) {
             viewDeletionLog();
             system("Pause");
             system("cls");
             adminpage();
-        } else if (updatechoice == 5) {
+        } else if (updatechoice == 6) {
             char searchsortadmin;
                     cout << "\t\t\t\t\t-------------------------------------" << endl;
                     cout << "\t\t\t\t\tEnter 1 to Search Admin "<< endl;
@@ -557,6 +612,7 @@ public:
                         case '1':
                         {
                             string adminname;
+                            viewAdminDetails();
                             cout << "Enter Admin Name to Search: ";
                             cin.ignore(); // Ignore newline character left in input buffer
                             getline(cin, adminname); // Read full vendor name including spaces if any
@@ -574,7 +630,7 @@ public:
                         default:
                             cout << "Invalid choice. Please enter a valid option (1-3)" << endl;
                     }
-        } else if (updatechoice == 6) {
+        } else if (updatechoice == 7) {
             system("cls");
             adminpage();
         } else {
@@ -678,7 +734,7 @@ void optionbooking() {
     cout << "\t\t\t\t\tEnter 1 for View All Booking" << endl;
     cout << "\t\t\t\t\tEnter 2 for Search/Sort Booking" << endl;
     cout << "\t\t\t\t\tEnter 3 for Cancel Booking" << endl;
-    cout << "\t\t\t\t\tEnter 4 for View User Cancel Reason" << endl;
+    cout << "\t\t\t\t\tEnter 4 for View Cancel Reason" << endl;
     cout << "\t\t\t\t\tEnter 5 for Go Back to Admin Panel" << endl;
     cout << "\t\t\t\t\tYour Choice:";
     cin >> viewchoice;
@@ -702,6 +758,7 @@ void optionbooking() {
             switch(searchsortbooking){
                 case '1':
                 {
+                	viewBooking();
                     string userbooking;
                     cout << "Enter User Name to Search: ";
                     cin.ignore(); // Ignore newline character left in input buffer
@@ -713,6 +770,7 @@ void optionbooking() {
                     break;
                 }
                 case '2':
+                	viewBooking();
                     // sort function
                     break;
                 case '3':
@@ -727,6 +785,7 @@ void optionbooking() {
             break;
         }
         case 3: {
+        	viewBooking();
             string usernameToDelete;
             cout << "Enter the username to cancel bookings: ";
             cin >> usernameToDelete;
