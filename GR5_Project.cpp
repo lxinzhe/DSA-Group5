@@ -1473,60 +1473,71 @@ void quickSort(string arr[][3], int left, int right, int col) {
                             adminpage();
                         }
                         case '2':
-                        {
-                            ifstream file("user_data.txt");
+							{
+    						ifstream file("user_data.txt");
+    						if (file.is_open()) {
+        					string line;
+        					const int MAX_VENDORS = 100; // Adjust based on expected number of vendors
+        					const int MAX_FIELDS = 3;    // Number of fields per vendor
+        					string vendors[MAX_VENDORS][MAX_FIELDS];
+        					int vendorCount = 0;
 
-                            if (file.is_open()) {
-                                string line;
-                                const int MAX_VENDORS = 100; // Adjust based on expected number of vendors
-                                const int MAX_FIELDS = 3;    // Number of fields per vendor
-                                string vendors[MAX_VENDORS][MAX_FIELDS];
-                                int vendorCount = 0;
+        					// Display the current content of the file
+        					cout << "================ Current Vendor Details ================" << endl;
 
-                                while (getline(file, line) && vendorCount < MAX_VENDORS) {
-                                    stringstream ss(line);
-                                    string item;
-                                    int fieldIndex = 0;
+        					while (getline(file, line) && vendorCount < MAX_VENDORS) {
+            					stringstream ss(line);
+            					string item;
+            					int fieldIndex = 0;
+            					while (ss >> item && fieldIndex < MAX_FIELDS) {
+            					    vendors[vendorCount][fieldIndex++] = item;
+            					}
 
-                                    while (ss >> item && fieldIndex < MAX_FIELDS) {
-                                        vendors[vendorCount][fieldIndex++] = item;
-                                    }
-                                    vendorCount++;
-                                }
+            					// Print the current line (vendor) with adjusted widths
+            					int columnWidths[MAX_FIELDS] = {20, 15, 30};
+            					string headers[MAX_FIELDS] = {"Vendor Name", "Password", "Email"};
+            					for (int j = 0; j < MAX_FIELDS; ++j) {
+            					    cout << setw(columnWidths[j]) << left << vendors[vendorCount][j];
+            					}
+            					cout << endl;
 
-                                file.close();
+            					vendorCount++;
+        					}
+        					cout << "=========================================================" << endl;
+        					file.close();
 
-                                // Sort vendors by username (first column)
-                                quickSort(vendors, 0, vendorCount - 1, 0);
+        					// Sort vendors by username (first column)
+        					quickSort(vendors, 0, vendorCount - 1, 0);
 
-                                // Display the sorted vendors in a table format
-                                cout << "================ Sorted Vendor Details ================" << endl;
+        					// Display the sorted vendors in a table format
+        					cout << "================ Sorted Vendor Details ================" << endl;
 
-                                // Print headers with adjusted widths
-                                string headers[MAX_FIELDS] = {"Vendor Name", "Password", "Email"};
-                                int columnWidths[MAX_FIELDS] = {20, 15, 30};
+        					// Print headers with adjusted widths
+        					string headers[MAX_FIELDS] = {"Vendor Name", "Password", "Email"};
+        					int columnWidths[MAX_FIELDS] = {20, 15, 30};
 
-                                for (int i = 0; i < MAX_FIELDS; ++i) {
-                                    cout << setw(columnWidths[i]) << left << headers[i];
-                                }
-                                cout << endl;
-                                cout << "=====================================================================" << endl;
+        					for (int i = 0; i < MAX_FIELDS; ++i) {
+        					    cout << setw(columnWidths[i]) << left << headers[i];
+        					}
+        					cout << endl;
+        					cout << "=====================================================================" << endl;
 
-                                // Print each vendor with adjusted widths
-                                for (int i = 0; i < vendorCount; ++i) {
-                                    for (int j = 0; j < MAX_FIELDS; ++j) {
-                                        cout << setw(columnWidths[j]) << left << vendors[i][j];
-                                    }
-                                    cout << endl;
-                                }
+        					// Print each vendor with adjusted widths
+        					for (int i = 0; i < vendorCount; ++i) {
+        					    for (int j = 0; j < MAX_FIELDS; ++j) {
+        					        cout << setw(columnWidths[j]) << left << vendors[i][j];
+        					    }
+        					    cout << endl;
+        					}
 
-                                cout << "=====================================================================" << endl;
+        					cout << "=====================================================================" << endl;
 
-                            } else {
-                                cout << "Error opening user file." << endl;
-                            }
-                        }
-                        break;
+    					} else {
+        					cout << "Error opening user file." << endl;
+    						}
+					}
+					break;
+
                         case '3' :
             				system("Pause");
                             system("cls");
@@ -2721,4 +2732,3 @@ int main() {
     } while (option != 4);
     return 0;
 }
-
