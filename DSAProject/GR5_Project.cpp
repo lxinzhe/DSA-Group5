@@ -14,6 +14,38 @@
 
 
 using namespace std;
+
+struct User {
+    string username;
+    string password;
+    string email;
+};
+
+bool compareByUsername(const User& a, const User& b) {
+    return a.username < b.username;
+}
+
+struct Admin {
+    string adminname;
+    string adminpassword;
+};
+    
+bool compareByAdmin(const Admin& a, const Admin& b) {
+    return a.adminname < b.adminname;
+}
+
+struct BookingSearch {
+    string user;
+    string email;
+    string vendorCompanyName;
+    string contact;
+    string eventDate;
+    string serviceType;
+    string boothLocation;
+    string boothNumber;
+    float totalPrice;
+};
+
 struct Booking {
     string userID;
     string details;
@@ -559,6 +591,48 @@ void viewAdminDetails() {
         cout << "Error opening admin file." << endl;
     }
 }
+// Swap function for swapping two Admin objects
+void swap(Admin& a, Admin& b) {
+    Admin temp = a;
+    a = b;
+    b = temp;
+}
+
+// Partition function for Quick Sort
+int partition(vector<Admin>& admins, int low, int high) {
+    string pivot = admins[high].adminname; 
+    int i = (low - 1); 
+
+    for (int j = low; j <= high - 1; j++) {
+        if (admins[j].adminname < pivot) {
+            i++;
+            swap(admins[i], admins[j]);
+        }
+    }
+    swap(admins[i + 1], admins[high]);
+    return (i + 1);
+}
+
+// Quick Sort function for sorting Admins by adminname
+void quickSortAdmins(vector<Admin>& admins, int low, int high) {
+    if (low < high) {
+        int pi = partition(admins, low, high);
+
+        quickSortAdmins(admins, low, pi - 1);
+        quickSortAdmins(admins, pi + 1, high);
+    }
+}
+
+// Function to display the list of admins
+void displayAdminList(const vector<Admin>& admins, const string& title) {
+    cout << "================ " << title << " ================" << endl;
+    cout << "Username" << setw(20) << "Password" << endl;
+    cout << "=================================================" << endl;
+    for (const auto& admin : admins) {
+        cout << admin.adminname << setw(25) << admin.adminpassword << endl;
+    }
+    cout << "=================================================" << endl;
+}
     void addinAdmin() {
         int updatechoice;
         cout << "\t\t\t\t\t-------------------------------------" << endl;
@@ -611,17 +685,53 @@ void viewAdminDetails() {
                     switch(searchsortadmin){
                         case '1':
                         {
-                            string adminname;
-                            viewAdminDetails();
-                            cout << "Enter Admin Name to Search: ";
-                            cin.ignore(); // Ignore newline character left in input buffer
-                            getline(cin, adminname); // Read full vendor name including spaces if any
-                            binarySearchAdmin(adminname);
+                            string filename = "admin_login.txt";
+                            vector<Admin> admins = loadAdmins(filename);
+                        
+                            //sort admin name 
+                            sort(admins.begin(), admins.end(), compareByAdmin);
+                        
+
+                            string username;
+                            cout << "Enter Admin Username to Search: ";
+                            cin.ignore(); 
+                            getline(cin, username);
+
+                            int index = binarySearchAdmin(admins, username);
+                        
+                            if (index != -1) {
+                                cout << "Admin found at index: " << index << endl;
+                                cout << "==================== Admin Details ====================" << endl;
+                                cout << "Username" << setw(20) << "Password" << endl;
+                                cout << "=====================================================" << endl;
+                                cout << admins[index].adminname << setw(25) << admins[index].adminpassword << endl;
+                                cout << "=====================================================" << endl;
+                                
+                            } else {
+                                cout << "Admin not found." << endl;
+                            }
+                            system("Pause");
+                            system("cls");
+                            adminpage();
                         }
-                        case '2':
-                        {
-                            //sort function
-                        }
+            case '2': {
+                string filename = "admin_login.txt";
+                vector<Admin> admins = loadAdmins(filename);
+
+                // Display current admins
+                displayAdminList(admins, "Current Admin List");
+
+                // Quick sort admin names
+                quickSortAdmins(admins, 0, admins.size() - 1);
+
+                // Display sorted admin list
+                displayAdminList(admins, "Sorted Admin List");
+
+                system("Pause");
+                system("cls");
+                adminpage();
+                break;
+            }
                         case '3' :
             				system("Pause");
                             system("cls");
@@ -642,47 +752,45 @@ void viewAdminDetails() {
     }
     
 // binary search admin function
-void binarySearchAdmin(const string& adminName) {
-    ifstream file("admin_login.txt");
-    
+vector<Admin> loadAdmins(const string& filename) {
+    vector<Admin> admins;
+    ifstream file(filename);
+
     if (file.is_open()) {
         string line;
-        bool found = false;
-        
-        // Read each line and search for vendorName
         while (getline(file, line)) {
-            size_t pos1 = line.find(' '); // Find the first space (assumes space separates fields)
-            if (pos1 == string::npos) continue; // Skip if not found
-            
-            string currentadminName = line.substr(0, pos1);
-            
-            // Convert currentVendorName to lower case for case-insensitive comparison
-            // (if needed; depends on your data)
-            
-            if (currentadminName == adminName) {
-                found = true;
-
-                // Display the entire vendor details row
-                cout << "Admin Found..." << endl;
-                cout << "-----------------------------------------------" << endl;
-                cout << "Admin Details:" << endl;
-                cout << "-----------------------------------------------" << endl;
-                cout << "Admin | Password  " << endl;
-                cout << "-----------------------------------------------" << endl;
-                cout << line << endl;  // Display the entire line
-                break;
+            istringstream iss(line);
+            Admin admin;
+            if (iss >> admin.adminname >> admin.adminpassword) {
+                admins.push_back(admin);
             }
         }
-        
-        if (!found) {
-            cout << "Admin '" << adminName << "' not found." << endl;
-        }
-        
         file.close();
     } else {
-        cout << "Error opening user file." << endl;
+        cout << "Error opening file." << endl;
     }
+
+    return admins;
 }
+
+int binarySearchAdmin(const vector<Admin>& admins, const string& targetAdmin) {
+        int left = 0;
+        int right = admins.size() - 1;
+    
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+    
+            if (admins[mid].adminname == targetAdmin) {
+                return mid; 
+            } else if (admins[mid].adminname < targetAdmin) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+    
+        return -1; 
+    }
 
     
 //Get time
@@ -727,7 +835,70 @@ string getCurrentTime()
         cout << endl;
         return password;
     }
+void writeBookingsToFile(const string& filename, const vector<BookingSearch>& bookings) {
+    ofstream file(filename);
+    if (!file.is_open()) {
+        cerr << "Could not open the file " << filename << " for writing." << endl;
+        return;
+    }
+    
+    for (const auto& booking : bookings) {
+        file << booking.user << endl;
+        file << booking.email << endl;
+        file << booking.vendorCompanyName << endl;
+        file << booking.contact << endl;
+        file << booking.eventDate << endl;
+        file << booking.serviceType << endl;
+        file << booking.boothLocation << endl;
+        file << booking.boothNumber << endl;
+        file << booking.totalPrice << endl;
+    }
 
+    file.close();
+}
+
+void displayAllBookings(const vector<BookingSearch>& bookings, const string& title) {
+    cout << "================ " << title << " ================" << endl;
+    for (const auto& booking : bookings) {
+        cout << "User: " << booking.user << endl;
+        cout << "Email: " << booking.email << endl;
+        cout << "Vendor Company Name: " << booking.vendorCompanyName << endl;
+        cout << "Contact: " << booking.contact << endl;
+        cout << "Event Date: " << booking.eventDate << endl;
+        cout << "Service Type: " << booking.serviceType << endl;
+        cout << "Booth Location: " << booking.boothLocation << endl;
+        cout << "Booth Number: " << booking.boothNumber << endl;
+        cout << "Total Price: RM" << booking.totalPrice << endl;
+        cout << "=================================================" << endl;
+    }
+}
+void quickSort(vector<BookingSearch>& bookings, int left, int right) {
+    int i = left, j = right;
+    BookingSearch tmp;
+    string pivot = bookings[(left + right) / 2].user;
+
+    /* partition */
+    while (i <= j) {
+        while (bookings[i].user < pivot)
+            i++;
+        while (bookings[j].user > pivot)
+            j--;
+        if (i <= j) {
+            // Swap elements
+            tmp = bookings[i];
+            bookings[i] = bookings[j];
+            bookings[j] = tmp;
+            i++;
+            j--;
+        }
+    };
+
+    /* recursion */
+    if (left < j)
+        quickSort(bookings, left, j);
+    if (i < right)
+        quickSort(bookings, i, right);
+}
 void optionbooking() {
     int viewchoice;
     cout << "\t\t\t\t\t-------------------------------------" << endl;
@@ -755,24 +926,67 @@ void optionbooking() {
             cout << "\t\t\t\t\tYour Choice: ";
             cin >> searchsortbooking;
             
-            switch(searchsortbooking){
-                case '1':
-                {
-                	viewBooking();
-                    string userbooking;
+switch(searchsortbooking) {
+                case '1': {
+                    string filename = "booking_details.txt";
+                    vector<BookingSearch> bookings = loadBookings(filename);
+                
+                    // Sort by user name to enable binary search
+                    sort(bookings.begin(), bookings.end(), [](const BookingSearch& a, const BookingSearch& b) {
+                        return a.user < b.user;
+                    });
+                
+                    string searchUser;
                     cout << "Enter User Name to Search: ";
-                    cin.ignore(); // Ignore newline character left in input buffer
-                    getline(cin, userbooking); // Read full vendor name including spaces if any
-                    binarySearchBooking(userbooking);
+                    cin.ignore();
+                    getline(cin, searchUser); 
+                
+                    int index = binarySearch(bookings, searchUser);
+                
+                    if (index != -1) {
+                        cout << "User booking information found, index: " << index << endl;
+                        cout << "================ Booking Details ================" << endl;
+                        cout << "User: " << bookings[index].user << endl;
+                        cout << "Email: " << bookings[index].email << endl;
+                        cout << "Vendor Company Name: " << bookings[index].vendorCompanyName << endl;
+                        cout << "Contact: " << bookings[index].contact << endl;
+                        cout << "Event Date: " << bookings[index].eventDate << endl;
+                        cout << "Service Type: " << bookings[index].serviceType << endl;
+                        cout << "Booth Location: " << bookings[index].boothLocation << endl;
+                        cout << "Booth Number: " << bookings[index].boothNumber << endl;
+                        cout << "Total Price: RM" << bookings[index].totalPrice << endl;
+                        cout << "=================================================" << endl;
+                        
+                    } else {
+                        cout << "User booking information not found" << endl;
+                    }
+
                     system("Pause");
                     system("cls");
                     adminpage();
                     break;
                 }
-                case '2':
-                	viewBooking();
-                    // sort function
+                case '2': {
+                    string filename = "booking_details.txt";
+                    vector<BookingSearch> bookings = loadBookings(filename);
+                
+                    // Display original bookings
+                    displayAllBookings(bookings, "Original Booking Details");
+
+                    // Sort bookings by user name
+                    quickSort(bookings, 0, bookings.size() - 1);
+                
+                    // Display sorted bookings
+                    displayAllBookings(bookings, "Sorted Booking Details by User Name");
+
+                    // Optionally write sorted bookings back to file
+                    writeBookingsToFile(filename, bookings);
+
+                    system("Pause");
+                    system("cls");
+                    adminpage();
                     break;
+                }
                 case '3':
                     system("Pause");
                     system("cls");
@@ -815,44 +1029,56 @@ void optionbooking() {
 }
 
 //binary search booking function 
-void binarySearchBooking(const string& userBooking) {
-    ifstream file("booking_details.txt");
-    
-    if (file.is_open()) {
-        string line;
-        bool found = false;
-        
-        while (getline(file, line)) {
-            size_t pos1 = line.find(':'); // Find the first ':' (assuming it separates fields)
-            if (pos1 == string::npos) continue; // Skip if not found
-            
-            string field = line.substr(0, pos1);
-            if (field == "User") {
-                string username = line.substr(pos1 + 2); // Skip ': ' after field name
-                if (username == userBooking) {
-                    found = true;
-                    cout << "Booking Found..." << endl;
-                    cout << "================ Booking Details ================" << endl;
-                    cout << line << endl;  // Display the entire line
-                    // Optionally, print additional lines if needed
-                    for (int i = 0; i < 6; ++i) {
-                        getline(file, line); // Read next line
-                        cout << line << endl; // Display next line
-                    }
-                    cout << "=================================================" << endl;
-                    break;
-                }
-            }
+vector<BookingSearch> loadBookings(const string& filename) {
+    vector<BookingSearch> bookings;
+    ifstream file(filename);
+    string line, user, email, vendorCompanyName, contact, eventDate, serviceType, boothLocation, boothNumber, priceStr;
+    float totalPrice;
+
+    while (getline(file, line)) {
+        if (line.find("User:") != string::npos) {
+            user = line.substr(line.find(":") + 2);
+            getline(file, email);
+            email = email.substr(email.find(":") + 2);
+            getline(file, vendorCompanyName);
+            vendorCompanyName = vendorCompanyName.substr(vendorCompanyName.find(":") + 2);
+            getline(file, contact);
+            contact = contact.substr(contact.find(":") + 2);
+            getline(file, eventDate);
+            eventDate = eventDate.substr(eventDate.find(":") + 2);
+            getline(file, serviceType);
+            serviceType = serviceType.substr(serviceType.find(":") + 2);
+            getline(file, boothLocation);
+            boothLocation = boothLocation.substr(boothLocation.find(":") + 2);
+            getline(file, boothNumber);
+            boothNumber = boothNumber.substr(boothNumber.find(":") + 2);
+            getline(file, priceStr);
+            totalPrice = stof(priceStr.substr(priceStr.find("RM") + 2));
+            getline(file, line); // Skip blank line
+
+            bookings.push_back({user, email, vendorCompanyName, contact, eventDate, serviceType, boothLocation, boothNumber, totalPrice});
         }
-        
-        if (!found) {
-            cout << "User '" << userBooking << "' not found." << endl;
-        }
-        
-        file.close();
-    } else {
-        cout << "Error opening user file." << endl;
     }
+
+    return bookings;
+}
+
+int binarySearch(const vector<BookingSearch>& bookings, const string& targetUser) {
+    int left = 0;
+    int right = bookings.size() - 1;
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        if (bookings[mid].user == targetUser) {
+            return mid; // Target found, return index
+        } else if (bookings[mid].user < targetUser) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+
+    return -1; // Target not found, return -1
 }
  
  void cancelBookingByUserID(const string& userID) {
@@ -1100,48 +1326,105 @@ void deleteUser(const string& username) {
 }
 
 //binary search vendor function
-void binarySearchVendor(const string& vendorName) {
-    ifstream file("user_data.txt");
-    
+vector<User> loadUsers(const string& filename) {
+    vector<User> users;
+    ifstream file(filename);
+
     if (file.is_open()) {
         string line;
-        bool found = false;
-        
-        // Read each line and search for vendorName
         while (getline(file, line)) {
-            size_t pos1 = line.find(' '); // Find the first space (assumes space separates fields)
-            if (pos1 == string::npos) continue; // Skip if not found
-            
-            string currentVendorName = line.substr(0, pos1);
-            
-            // Convert currentVendorName to lower case for case-insensitive comparison
-            // (if needed; depends on your data)
-            
-            if (currentVendorName == vendorName) {
-                found = true;
-
-                // Display the entire vendor details row
-                cout << "Vendor Found..." << endl;
-                cout << "-----------------------------------------------" << endl;
-                cout << "Vendor Details:" << endl;
-                cout << "-----------------------------------------------" << endl;
-                cout << "Vendor name |   Password  |     Email" << endl;
-                cout << "-----------------------------------------------" << endl;
-                cout << line << endl;  // Display the entire line
-                break;
+            istringstream iss(line);
+            User user;
+            if (iss >> user.username >> user.password >> user.email) {
+                users.push_back(user);
             }
         }
-        
-        if (!found) {
-            cout << "Vendor '" << vendorName << "' not found." << endl;
-        }
-        
         file.close();
     } else {
-        cout << "Error opening user file." << endl;
+        cout << "Error opening file." << endl;
     }
+
+    return users;
 }
 
+int binarySearchVendor(const vector<User>& users, const string& targetUsername) {
+    int left = 0;
+    int right = users.size() - 1;
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+
+        if (users[mid].username == targetUsername) {
+            return mid; //find the index
+        } else if (users[mid].username < targetUsername) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+
+    return -1; //return -1 when find 
+}
+// QuickSort function
+void quickSort(string arr[][3], int left, int right, int col, bool sortByLength) {
+    int i = left, j = right;
+    string tmp[3];
+    string pivot = arr[(left + right) / 2][col];
+
+    /* partition */
+    while (i <= j) {
+        if (sortByLength) {
+            while (arr[i][col].length() < pivot.length())
+                i++;
+            while (arr[j][col].length() > pivot.length())
+                j--;
+        } else {
+            while (arr[i][col] < pivot)
+                i++;
+            while (arr[j][col] > pivot)
+                j--;
+        }
+
+        if (i <= j) {
+            // Swap rows
+            for (int k = 0; k < 3; k++) {
+                tmp[k] = arr[i][k];
+                arr[i][k] = arr[j][k];
+                arr[j][k] = tmp[k];
+            }
+            i++;
+            j--;
+        }
+    }
+
+    /* recursion */
+    if (left < j)
+        quickSort(arr, left, j, col, sortByLength);
+    if (i < right)
+        quickSort(arr, i, right, col, sortByLength);
+}
+
+void displayVendors(string vendors[][3], int vendorCount, int columnWidths[], string headers[], const string& title) {
+    cout << "================ " << title << " ================" << endl;
+
+    // Print headers with adjusted widths
+    for (int i = 0; i < 3; ++i) {
+        cout << setw(columnWidths[i]) << left << headers[i];
+    }
+    cout << endl;
+    cout << "=====================================================================" << endl;
+
+    // Print each vendor with adjusted widths
+    for (int i = 0; i < vendorCount; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            cout << setw(columnWidths[j]) << left << vendors[i][j];
+        }
+        cout << endl;
+    }
+
+    cout << "=====================================================================" << endl;
+}
+//lee and yaowen 
   void viewuser() {
     char choiceuser;
 
@@ -1221,62 +1504,88 @@ void binarySearchVendor(const string& vendorName) {
                     switch(searchsortchoice){
                         case '1':
                         {
-                        	                	ifstream file("user_data.txt");
-
-                    if (file.is_open()) {
-                        string line;
-                        const int MAX_VENDORS = 100; // Adjust based on expected number of vendors
-                        const int MAX_FIELDS = 3;    // Number of fields per vendor
-                        string vendors[MAX_VENDORS][MAX_FIELDS];
-                        int vendorCount = 0;
-
-                        while (getline(file, line) && vendorCount < MAX_VENDORS) {
-                            stringstream ss(line);
-                            string item;
-                            int fieldIndex = 0;
-
-                            while (ss >> item && fieldIndex < MAX_FIELDS) {
-                                vendors[vendorCount][fieldIndex++] = item;
-                            }
-                            vendorCount++;
-                        }
-
-                        file.close();
-
-                        // Display the vendors in a table format
-                        cout << "================ Vendor Details ================" << endl;
-
-                        // Print headers with adjusted widths
-                        string headers[MAX_FIELDS] = {"Vendor Name", "Password", "Email"};
-                        int columnWidths[MAX_FIELDS] = {20, 15, 30};
-
-                        for (int i = 0; i < MAX_FIELDS; ++i) {
-                            cout << setw(columnWidths[i]) << left << headers[i];
-                        }
-                        cout << endl;
-                        cout << "=====================================================================" << endl;
-
-                        // Print each vendor with adjusted widths
-                        for (int i = 0; i < vendorCount; ++i) {
-                            for (int j = 0; j < MAX_FIELDS; ++j) {
-                                cout << setw(columnWidths[j]) << left << vendors[i][j];
-                            }
-                            cout << endl;
-                        }
-
-                        cout << "=====================================================================" << endl;
-
-                    } 
-                            string vendorname;
+                            string filename = "user_data.txt";
+                            vector<User> users = loadUsers(filename);
+                        
+                            // sort with username
+                            sort(users.begin(), users.end(), compareByUsername);
+                        
+                            string username;
                             cout << "Enter Vendor Name to Search: ";
-                            cin.ignore(); // Ignore newline character left in input buffer
-                            getline(cin, vendorname); // Read full vendor name including spaces if any
-                            binarySearchVendor(vendorname);
+                            cin.ignore(); 
+                            getline(cin, username);
+                        
+                            
+                            int index = binarySearchVendor(users, username);
+                        
+                            if (index != -1) {
+                                cout << "Vendor found at index: " << index << endl;
+                                cout << "-----------------------------------------------" << endl;
+                                cout << "Vendor Details:" << endl;
+                                cout << "-----------------------------------------------" << endl;
+                                cout << "Vendor name |   Password  |     Email" << endl;
+                                cout << "-----------------------------------------------" << endl;
+                                cout << users[index].username << "        " << users[index].password << "        " <<users[index].email  << endl;
+                            } else {
+                                cout << "Vendor not found." << endl;
+                            }
+                            system("Pause");
+                            system("cls");
+                            adminpage();
                         }
-                        case '2':
-                        {
-                            //sort function
-                        }
+        case '2': {
+            ifstream file("user_data.txt");
+            if (file.is_open()) {
+                string line;
+                const int MAX_VENDORS = 100; // Adjust based on expected number of vendors
+                const int MAX_FIELDS = 3;    // Number of fields per vendor
+                string vendors[MAX_VENDORS][MAX_FIELDS];
+                int vendorCount = 0;
+
+                // Display the current content of the file
+                cout << "================ Current Vendor Details ================" << endl;
+
+                while (getline(file, line) && vendorCount < MAX_VENDORS) {
+                    stringstream ss(line);
+                    string item;
+                    int fieldIndex = 0;
+                    while (ss >> item && fieldIndex < MAX_FIELDS) {
+                        vendors[vendorCount][fieldIndex++] = item;
+                    }
+
+                    // Print the current line (vendor) with adjusted widths
+                    int columnWidths[MAX_FIELDS] = {20, 15, 30};
+                    for (int j = 0; j < MAX_FIELDS; ++j) {
+                        cout << setw(columnWidths[j]) << left << vendors[vendorCount][j];
+                    }
+                    cout << endl;
+
+                    vendorCount++;
+                }
+                cout << "=========================================================" << endl;
+                file.close();
+
+                // Prompt user for sorting preference
+                char sortChoice;
+                cout << "Choose sorting option (a: alphabetical, l: length): ";
+                cin >> sortChoice;
+                bool sortByLength = (sortChoice == 'l');
+
+                // Sort vendors based on the choice
+                quickSort(vendors, 0, vendorCount - 1, 0, sortByLength);
+
+                // Display the sorted vendors in a table format
+                string headers[MAX_FIELDS] = {"Vendor Name", "Password", "Email"};
+                int columnWidths[MAX_FIELDS] = {20, 15, 30};
+                displayVendors(vendors, vendorCount, columnWidths, headers, "Sorted Vendor Details");
+
+            } else {
+                cout << "Error opening user file." << endl;
+            }
+                    }
+            break;
+
+
                         case '3' :
             				system("Pause");
                             system("cls");
